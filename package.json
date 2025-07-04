@@ -6,7 +6,14 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "hardhat compile",
-    "deploy:aimond:localnet": "hardhat run scripts/deploy-aimond.ts --network localnet"
+    "localnode": "NODE_OPTIONS='--max-old-space-size=8192' yarn hardhat node --port 8545",
+    "deploy:aim:localnet": "hardhat run scripts/deploy-aimond.ts --network localnet",
+    "deploy:aim:bsc": "hardhat run scripts/deploy-aimond.ts --network bsc",
+    "deploy:aim:bscTestnet": "hardhat run scripts/deploy-aimond.ts --network bscTestnet",
+    "transfer:aim:localnet": "hardhat run scripts/transfer-aimond.ts --network localnet",
+    "transfer:aim:bsc": "hardhat run scripts/transfer-aimond.ts --network bsc",
+    "transfer:aim:bscTestnet": "hardhat run scripts/transfer-aimond.ts --network bscTestnet"
+    
   },
   "keywords": [],
   "author": "",

@@ -1,14 +1,10 @@
-import * as dotenv from "dotenv";
+import { config as dotEnvConfig } from "dotenv";
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import { Wallet, parseEther } from "ethers";
 import { HardhatNetworkAccountUserConfig } from "hardhat/types/config";
 
-dotenv.config({ path: process.env.ENV_FILE || ".env" });
-// show all environment variables
-console.log("Loaded environment variables from:", process.env.ENV_FILE || ".env");
-console.log("process.env.ADMIN_KEY:", process.env.ADMIN_KEY);
-console.log("process.env.ADMIN_ADDRESS:", process.env.ADMIN_ADDRESS);
+dotEnvConfig({ path: process.env.ENV_FILE || ".env" });
 
 function getAccounts() {
   const accounts: HardhatNetworkAccountUserConfig[] = [];
@@ -42,6 +38,22 @@ const config: HardhatUserConfig = {
         process.env.USER_KEY || "",
       ],
     },
+    bsc: {
+      url: "https://bsc-dataseed1.binance.org/",
+      chainId: 56,
+      accounts: [
+        process.env.ADMIN_KEY || "",
+        process.env.USER_KEY || "",
+      ],
+    },
+    bscTestnet: {
+      url: "https://data-seed-prebsc-1-s1.binance.org:8545",
+      chainId: 97,
+      accounts: [
+        process.env.ADMIN_KEY || "",
+        process.env.USER_KEY || "",
+      ],
+    }
   },
 };
 
