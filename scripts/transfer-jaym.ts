@@ -1,14 +1,14 @@
 import { ethers } from "hardhat";
 
 async function main() {
-  const recipient = process.env.RECIPIENT_ADDRESS;
+  const recipient = process.env.JAYMOND_RECIPIENT_ADDRESS;
   if (!recipient) {
-    throw new Error("Please set your RECIPIENT_ADDRESS in a .env file");
+    throw new Error("Please set your JAYMOND_RECIPIENT_ADDRESS in a .env file");
   }
 
   const aimondAddress = process.env.JAYMOND_ADDRESS;
   if(!aimondAddress) {
-    throw new Error("Please set your JAYMOND_TOKEN_ADDRESS in a .env file");
+    throw new Error("Please set your JAYMOND_ADDRESS in a .env file");
   }
 
   const [signer] = await ethers.getSigners();

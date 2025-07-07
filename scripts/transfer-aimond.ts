@@ -8,7 +8,7 @@ async function main() {
 
   const aimondAddress = process.env.AIMOND_ADDRESS;
   if(!aimondAddress) {
-    throw new Error("Please set your AIMOND_TOKEN_ADDRESS in a .env file");
+    throw new Error("Please set your AIMOND_ADDRESS in a .env file");
   }
 
   const [signer] = await ethers.getSigners();
