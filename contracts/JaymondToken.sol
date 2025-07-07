@@ -868,8 +868,8 @@ contract ERC20Base is Context, ERC20, Ownable {
 }
 
 contract Jaymond is ERC20Base, ReentrancyGuard {
-    uint256 public initialSupply = 80000000000 * (10 ** uint256(decimals())); //initial amount of tokens to be minted
-    uint256 public maxSupply = 80000000000 * (10 ** uint256(decimals())); // maximum amount of tokens that can be minted
+    uint256 public initialSupply = 88000000000 * (10 ** uint256(decimals())); //initial amount of tokens to be minted
+    uint256 public maxSupply = 88000000000 * (10 ** uint256(decimals())); // maximum amount of tokens that can be minted
 
     constructor() payable ERC20Base("Jaymond", "JAM") {
         mint(msg.sender, initialSupply);

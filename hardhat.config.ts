@@ -24,7 +24,20 @@ function getAccounts() {
 }
 
 const config: HardhatUserConfig = {
-  solidity: "0.8.28",
+  solidity: {
+    compilers: [
+      {
+        version: "0.8.24",
+        settings: {
+          // turn optimizer on/off here:
+          optimizer: {
+            enabled: false,   // ← set to `false` to disable
+            runs: 200        // ← match this to BscScan “runs” setting
+          }
+        }
+      }
+    ]
+  },
   defaultNetwork: "hardhat",
   networks: {
     hardhat: {
@@ -39,7 +52,7 @@ const config: HardhatUserConfig = {
       ],
     },
     bsc: {
-      url: process.env.BSC_URL || "https://bsc-dataseed1.binance.org/",
+      url: "https://bsc-dataseed1.binance.org/",
       chainId: 56,
       accounts: [
         process.env.ADMIN_KEY || "",
@@ -47,7 +60,7 @@ const config: HardhatUserConfig = {
       ],
     },
     bscTestnet: {
-      url: process.env.BSC_TESTNET_URL || "https://data-seed-prebsc-1-s1.binance.org:8545",
+      url: "https://data-seed-prebsc-1-s1.binance.org:8545",
       chainId: 97,
       accounts: [
         process.env.ADMIN_KEY || "",
@@ -55,6 +68,14 @@ const config: HardhatUserConfig = {
       ],
     }
   },
+  etherscan: {
+    apiKey: {
+      bsc: 'G3CC3P4J717124Y31J9ZMPBH2G4KPY98FT'
+    }
+  },
+  sourcify: {
+    enabled: true
+  }
 };
 
 export default config;

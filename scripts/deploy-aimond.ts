@@ -5,7 +5,7 @@ import type { Provider } from "ethers";
 async function main() {
   const provider = ethers.provider;
   const admin = new ethers.Wallet(process.env.ADMIN_KEY || "", provider as unknown as Provider);
-  console.log("admin address:", admin.address);
+  console.log("admin(deployer) address:", admin.address);
 
   const aimond = await ethers.deployContract("contracts/AimondToken.sol:Aimond");
   await aimond.waitForDeployment();

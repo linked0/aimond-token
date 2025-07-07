@@ -1,7 +1,3 @@
-/**
- *Submitted for verification at BscScan.com on 2025-06-19
- */
-
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
@@ -868,8 +864,8 @@ contract ERC20Base is Context, ERC20, Ownable {
 }
 
 contract Aimond is ERC20Base, ReentrancyGuard {
-    uint256 public initialSupply = 80000000000 * (10 ** uint256(decimals())); //initial amount of tokens to be minted
-    uint256 public maxSupply = 80000000000 * (10 ** uint256(decimals())); // maximum amount of tokens that can be minted
+    uint256 public initialSupply = 88000000000 * (10 ** uint256(decimals())); //initial amount of tokens to be minted
+    uint256 public maxSupply = 88000000000 * (10 ** uint256(decimals())); // maximum amount of tokens that can be minted
 
     constructor() payable ERC20Base("Aimond", "AIM") {
         mint(msg.sender, initialSupply);
