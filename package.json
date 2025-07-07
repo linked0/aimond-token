@@ -12,7 +12,13 @@
     "deploy:aim:bscTestnet": "hardhat run scripts/deploy-aimond.ts --network bscTestnet",
     "transfer:aim:localnet": "hardhat run scripts/transfer-aimond.ts --network localnet",
     "transfer:aim:bsc": "hardhat run scripts/transfer-aimond.ts --network bsc",
-    "transfer:aim:bscTestnet": "hardhat run scripts/transfer-aimond.ts --network bscTestnet"
+    "transfer:aim:bscTestnet": "hardhat run scripts/transfer-aimond.ts --network bscTestnet",
+    "deploy:jam:localnet": "hardhat run scripts/deploy-jaym.ts --network localnet",
+    "deploy:jam:bsc": "hardhat run scripts/deploy-jaym.ts --network bsc",
+    "deploy:jam:bscTestnet": "hardhat run scripts/deploy-jaym.ts --network bscTestnet",
+    "transfer:jam:localnet": "hardhat run scripts/transfer-jaym.ts --network localnet",
+    "transfer:jam:bsc": "hardhat run scripts/transfer-jaym.ts --network bsc",
+    "transfer:jam:bscTestnet": "hardhat run scripts/transfer-jaym.ts --network bscTestnet"
     
   },
   "keywords": [],
