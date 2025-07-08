@@ -45,7 +45,7 @@ const config: HardhatUserConfig = {
     },
     localnet: {
       url: "http://127.0.0.1:8545",
-      chainId: 31337,
+      chainId: 12301, // 31337 is the default chain ID for Hardhat local network
       accounts: [
         process.env.ADMIN_KEY || "",
         process.env.USER_KEY || "",
