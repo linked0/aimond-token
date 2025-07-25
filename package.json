@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "hardhat test",
+    "test:invest": "hardhat test test/InvestorVesting.test.ts",
+    "test:found": "hardhat test test/FounderVesting.test.ts",
+    "test:emp": "hardhat test test/EmployeeVesting.test.ts",
     "build": "hardhat compile",
     "localnode": "NODE_OPTIONS='--max-old-space-size=8192' yarn hardhat node --port 8545",
     "deploy:aim:localnet": "hardhat run scripts/deploy-aimond.ts --network localnet",
@@ -19,7 +22,6 @@
     "transfer:jam:localnet": "hardhat run scripts/transfer-jaym.ts --network localnet",
     "transfer:jam:bsc": "hardhat run scripts/transfer-jaym.ts --network bsc",
     "transfer:jam:bscTestnet": "hardhat run scripts/transfer-jaym.ts --network bscTestnet"
-    
   },
   "keywords": [],
   "author": "",
@@ -48,5 +50,10 @@
     "typechain": "^8.3.0",
     "typescript": "^5.8.3"
   },
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e",
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.4.0",
+    "@safe-global/protocol-kit": "^2.0.0",
+    "@safe-global/safe-core-sdk-types": "^2.0.0"
+  }
 }

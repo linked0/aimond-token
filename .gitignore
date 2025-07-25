@@ -158,3 +158,6 @@ ignition/deployments/chain-31337
 
 # etc
 .DS_Store
+
+# For Security
+security/
