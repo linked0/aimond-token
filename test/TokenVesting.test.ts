@@ -41,11 +41,11 @@ describe("TokenVesting", function () {
             const cliffEndsTimestamp = listingTimestamp + (364 * 24 * 60 * 60);
             await time.increaseTo(cliffEndsTimestamp + (30 * 24 * 60 * 60));
 
-            await vestingContract.connect(investor1).releaseVestedTokens();
+            await vestingContract.connect(investor1).claim();
 
             schedule = await vestingContract.vestingSchedules(investor1.address);
             expect(await aimToken.balanceOf(investor1.address)).to.equal(scheduleAmount);
-            expect(await amdToken.balanceOf(investor1.address)).to.be.closeTo(scheduleAmount / 10n, 1);
+            expect(await amdToken.balanceOf(investor1.address)).to.be.closeTo(scheduleAmount / 36n, 1);
         });
     });
 
@@ -70,11 +70,31 @@ describe("TokenVesting", function () {
             const cliffEndsTimestamp = listingTimestamp + (665 * 24 * 60 * 60);
             await time.increaseTo(cliffEndsTimestamp + (30 * 24 * 60 * 60));
 
-            await vestingContract.connect(founder1).releaseVestedTokens();
+            await vestingContract.connect(founder1).claim();
 
             schedule = await vestingContract.vestingSchedules(founder1.address);
             expect(await aimToken.balanceOf(founder1.address)).to.equal(scheduleAmount);
-            expect(await amdToken.balanceOf(founder1.address)).to.be.closeTo(scheduleAmount / 10n, 1);
+            expect(await amdToken.balanceOf(founder1.address)).to.be.closeTo(scheduleAmount / 30n, 1);
+        });
+
+        it("Should allow owner to release tokens to founder", async function () {
+            const listingTimestamp = await time.latest();
+            await vestingContract.connect(owner).createFounderVesting(
+                founder1.address
+            );
+            await vestingContract.connect(owner).setGlobalStartTime(listingTimestamp);
+            
+            let schedule = await vestingContract.vestingSchedules(founder1.address);
+            expect(await aimToken.balanceOf(founder1.address)).to.equal(scheduleAmount);
+
+            const cliffEndsTimestamp = listingTimestamp + (665 * 24 * 60 * 60);
+            await time.increaseTo(cliffEndsTimestamp + (30 * 24 * 60 * 60));
+
+            await vestingContract.connect(owner).releaseTo(founder1.address);
+
+            schedule = await vestingContract.vestingSchedules(founder1.address);
+            expect(await aimToken.balanceOf(founder1.address)).to.equal(scheduleAmount);
+            expect(await amdToken.balanceOf(founder1.address)).to.be.closeTo(scheduleAmount / 30n, 1);
         });
     });
 
@@ -99,7 +119,7 @@ describe("TokenVesting", function () {
             const cliffEndsTimestamp = listingTimestamp + (970 * 24 * 60 * 60);
             await time.increaseTo(cliffEndsTimestamp + (30 * 24 * 60 * 60));
 
-            await vestingContract.connect(partner1).releaseVestedTokens();
+            await vestingContract.connect(partner1).claim();
 
             schedule = await vestingContract.vestingSchedules(partner1.address);
             expect(await aimToken.balanceOf(partner1.address)).to.equal(scheduleAmount);
