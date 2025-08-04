@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @title AimondToken
- * @author AimondLabs
+ * @author AimondLabsO
  * @notice This is the main ERC20 token for the Aimond ecosystem.
  * It has a fixed total supply and is owned by an initial owner.
  */

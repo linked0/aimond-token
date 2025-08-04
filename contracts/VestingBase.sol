@@ -1,31 +1,29 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /**
- * @title LedgerToken
+ * @title VestingBase
  * @author AimondLabs
  * @notice This abstract contract provides a framework for creating ledger tokens that represent a claim on a real ERC20 token (AimondToken),
  * subject to a vesting schedule. It handles the creation of vesting schedules, tracks vested amounts, and allows beneficiaries to release their tokens once vested.
  * It is designed to be inherited by specific token contracts that define their own supply and vesting parameters.
  */
-abstract contract LedgerToken is ERC20, Ownable, ReentrancyGuard {
+abstract contract VestingBase is Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
     /**
      * @dev Represents a single vesting schedule for a beneficiary.
-     * @param totalAmount The total amount of tokens allocated in this schedule.
+     
      * @param cliffDuration The duration in seconds after the global start time before vesting begins.
      * @param vestingDuration The total duration in seconds over which the tokens vest after the cliff.
      * @param installmentCount The number of installments the vesting is divided into.
      * @param releasedAmount The amount of tokens already released to the beneficiary from this schedule.
      */
     struct VestingSchedule {
-        uint256 totalAmount;
         uint256 cliffDuration; // In seconds
         uint256 vestingDuration; // In seconds, after the cliff
         uint256 installmentCount;
@@ -35,7 +33,10 @@ abstract contract LedgerToken is ERC20, Ownable, ReentrancyGuard {
     /// @dev The total amount of underlying tokens allocated to this ledger contract.
     uint256 public immutable totalAllocatedTokens;
     /// @dev A mapping from a beneficiary's address to their array of vesting schedules.
-    mapping(address => VestingSchedule[]) public vestingSchedules;
+    mapping(address => VestingSchedule) public vestingSchedules;
+    
+    /// @dev The instance of the AIM token contract.
+    IERC20 public aimToken;
     /// @dev The instance of the main AimondToken (AMD) contract.
     IERC20 public amdToken;
     /// @dev The cumulative amount of tokens that have been assigned to vesting schedules.
@@ -46,14 +47,13 @@ abstract contract LedgerToken is ERC20, Ownable, ReentrancyGuard {
     /**
      * @dev Emitted when a new vesting schedule is created for a beneficiary.
      * @param beneficiary The address receiving the vested tokens.
-     * @param totalAmount The total amount of tokens in the schedule.
+     
      * @param cliffDuration The cliff period in seconds.
      * @param vestingDuration The vesting period in seconds.
      * @param installmentCount The number of installments.
      */
     event VestingScheduleCreated(
         address indexed beneficiary,
-        uint256 totalAmount,
         uint256 cliffDuration,
         uint256 vestingDuration,
         uint256 installmentCount
@@ -67,39 +67,34 @@ abstract contract LedgerToken is ERC20, Ownable, ReentrancyGuard {
     event TokensReleased(address indexed beneficiary, uint256 amount);
 
     /**
-     * @dev Initializes the LedgerToken contract.
-     * @param name_ The name of the ledger token (e.g., "Founder Aimond").
-     * @param symbol_ The symbol of the ledger token (e.g., "AIMF").
+     * @dev Initializes the VestingBase contract.
      * @param initialOwner The address that will have ownership of the contract.
+     * @param aimTokenAddress The address of the AIM token contract.
      * @param amdTokenAddress The address of the main AimondToken (AMD) contract.
      */
-    constructor(
-        string memory name_,
-        string memory symbol_,
-        address initialOwner,
-        address amdTokenAddress
-    ) ERC20(name_, symbol_) Ownable(initialOwner) {
+    constructor(address initialOwner, address aimTokenAddress, address amdTokenAddress) Ownable(initialOwner) {
+        require(aimTokenAddress != address(0), "Invalid AIM token address");
         require(amdTokenAddress != address(0), "Invalid AMD token address");
+        aimToken = IERC20(aimTokenAddress);
         amdToken = IERC20(amdTokenAddress);
     }
 
     /**
      * @dev Internal function to create and store a new vesting schedule for a beneficiary.
-     * It mints the corresponding amount of ledger tokens to the beneficiary.
      * @param beneficiary The address of the beneficiary.
-     * @param totalAmount The total amount of tokens to vest.
+     
      * @param cliffDurationInDays The cliff duration in days.
      * @param vestingDurationInMonths The vesting duration in months.
      * @param installmentCount The number of installments for release.
      */
     function _createVestingSchedule(
         address beneficiary,
-        uint256 totalAmount,
         uint256 cliffDurationInDays,
         uint256 vestingDurationInMonths,
         uint256 installmentCount
     ) internal {
-        require(totalAmount > 0, "Total amount must be greater than 0");
+        require(aimToken.balanceOf(beneficiary) > 0, "Beneficiary's AIM balance must be greater than 0");
+        
         require(
             installmentCount > 0,
             "Installment count must be greater than 0"
@@ -109,26 +104,21 @@ abstract contract LedgerToken is ERC20, Ownable, ReentrancyGuard {
             "Vesting duration must accommodate all installments"
         );
 
-        cumulativeVestedAmount += totalAmount;
+        cumulativeVestedAmount += aimToken.balanceOf(beneficiary);
 
         uint256 cliffDuration = cliffDurationInDays * 86400;
         uint256 vestingDuration = vestingDurationInMonths * 30 days;
 
-        vestingSchedules[beneficiary].push(
-            VestingSchedule({
-                totalAmount: totalAmount,
-                cliffDuration: cliffDuration,
-                vestingDuration: vestingDuration,
-                installmentCount: installmentCount,
-                releasedAmount: 0
-            })
-        );
-
-        _mint(beneficiary, totalAmount);
+        require(vestingSchedules[beneficiary].vestingDuration == 0, "Beneficiary already has a vesting schedule");
+        vestingSchedules[beneficiary] = VestingSchedule({
+            cliffDuration: cliffDuration,
+            vestingDuration: vestingDuration,
+            installmentCount: installmentCount,
+            releasedAmount: 0
+        });
 
         emit VestingScheduleCreated(
             beneficiary,
-            totalAmount,
             cliffDuration,
             vestingDuration,
             installmentCount
@@ -147,19 +137,14 @@ abstract contract LedgerToken is ERC20, Ownable, ReentrancyGuard {
         );
 
         if (totalReleasableAmount > 0) {
-            uint256 remainingToRelease = totalReleasableAmount;
-            VestingSchedule[] storage schedules = vestingSchedules[msg.sender];
-            for (uint i = 0; i < schedules.length; i++) {
-                uint256 releasable = _calculateReleasableAmount(schedules[i]);
-                if (releasable > 0) {
-                    uint256 amountToMark = (remainingToRelease < releasable)
-                        ? remainingToRelease
-                        : releasable;
-                    schedules[i].releasedAmount += amountToMark;
-                    remainingToRelease -= amountToMark;
-                }
+            
+            VestingSchedule storage schedule = vestingSchedules[msg.sender];
+            uint256 releasable = _calculateReleasableAmount(msg.sender, schedule);
+            if (releasable > 0) {
+                schedule.releasedAmount += releasable;
             }
 
+            require(aimToken.balanceOf(msg.sender) >= totalReleasableAmount, "Insufficient AIM tokens to claim AMD");
             amdToken.safeTransfer(msg.sender, totalReleasableAmount);
             emit TokensReleased(msg.sender, totalReleasableAmount);
         }
@@ -195,13 +180,7 @@ abstract contract LedgerToken is ERC20, Ownable, ReentrancyGuard {
     function _getCurrentlyReleasableAmount(
         address beneficiary
     ) internal view returns (uint256) {
-        uint256 totalReleasableAmount = 0;
-        VestingSchedule[] storage schedules = vestingSchedules[beneficiary];
-
-        for (uint i = 0; i < schedules.length; i++) {
-            totalReleasableAmount += _calculateReleasableAmount(schedules[i]);
-        }
-        return totalReleasableAmount;
+        return _calculateReleasableAmount(beneficiary, vestingSchedules[beneficiary]);
     }
 
     /**
@@ -210,6 +189,7 @@ abstract contract LedgerToken is ERC20, Ownable, ReentrancyGuard {
      * @return The amount of tokens that can be released from this schedule.
      */
     function _calculateReleasableAmount(
+        address beneficiary,
         VestingSchedule storage schedule
     ) internal view returns (uint256) {
         if (globalStartTime == 0) {
@@ -225,7 +205,7 @@ abstract contract LedgerToken is ERC20, Ownable, ReentrancyGuard {
             schedule.installmentCount;
 
         if (installmentDuration == 0) {
-            return schedule.totalAmount - schedule.releasedAmount;
+            return aimToken.balanceOf(beneficiary) - schedule.releasedAmount;
         }
 
         uint256 vestedInstallments = timeSinceVestingStart /
@@ -234,13 +214,13 @@ abstract contract LedgerToken is ERC20, Ownable, ReentrancyGuard {
             vestedInstallments = schedule.installmentCount;
         }
 
-        uint256 totalVestedAmount = (schedule.totalAmount /
+        uint256 totalVestedAmount = (aimToken.balanceOf(beneficiary) /
             schedule.installmentCount) * vestedInstallments;
 
         // Add any remainder from the total amount to the last installment to ensure full distribution
         if (vestedInstallments == schedule.installmentCount) {
             totalVestedAmount +=
-                schedule.totalAmount %
+                aimToken.balanceOf(beneficiary) %
                 schedule.installmentCount;
         }
 
