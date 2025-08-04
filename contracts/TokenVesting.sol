@@ -1,90 +1,125 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "./VestingBase.sol";
-import "./interfaces/IInvestorVesting.sol";
-import "./interfaces/IFounderVesting.sol";
-import "./interfaces/IPartnerVesting.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /**
  * @title TokenVesting
  * @author AimondLabs
- * @notice This contract manages various vesting schedules for different types of participants (e.g., investors, founders, partners).
- * It inherits from VestingBase and allows for the creation of individual vesting schedules.
+ * @notice This contract manages the vesting of Aimond (AIM) tokens for various stakeholders, including investors, founders, and partners.
+ * It allows for the creation of different vesting schedules based on the stakeholder's role and facilitates the release of vested tokens over time.
  */
-contract TokenVesting is VestingBase, IInvestorVesting, IFounderVesting, IPartnerVesting {
-    // Investor Vesting Constants
-    uint256 private constant INVESTOR_CLIFF_DURATION_DAYS = 363;
-    uint256 private constant INVESTOR_VESTING_DURATION_MONTHS = 10;
-    uint256 private constant INVESTOR_INSTALLMENT_COUNT = 10;
-
-    // Founder Vesting Constants
-    uint256 private constant FOUNDER_CLIFF_DURATION_DAYS = 663;
-    uint256 private constant FOUNDER_VESTING_DURATION_MONTHS = 10;
-    uint256 private constant FOUNDER_INSTALLMENT_COUNT = 10;
-
-    // Partner Vesting Constants
-    uint256 private constant PARTNER_CLIFF_DURATION_DAYS = 968;
-    uint256 private constant PARTNER_VESTING_DURATION_MONTHS = 1;
-    uint256 private constant PARTNER_INSTALLMENT_COUNT = 1;
+contract TokenVesting is Ownable, ReentrancyGuard {
+    using SafeERC20 for IERC20;
 
     /**
-     * @dev Sets up the contract with an initial owner and the addresses of the AIM and AMD tokens.
-     * @param initialOwner The address of the initial owner of the contract.
-     * @param aimTokenAddress The address of the AIM token contract.
-     * @param amdTokenAddress The address of the main AimondToken (AMD) contract.
+     * @dev Represents a single vesting schedule for a beneficiary.
+     * @param cliffDuration The duration in seconds after the global start time before vesting begins.
+     * @param vestingDuration The total duration in seconds over which the tokens vest after the cliff.
+     * @param installmentCount The number of installments the vesting is divided into.
+     * @param releasedAmount The amount of tokens already released to the beneficiary from this schedule.
      */
-    constructor(
-        address initialOwner,
-        address aimTokenAddress,
-        address amdTokenAddress
-    ) VestingBase(initialOwner, aimTokenAddress, amdTokenAddress) {}
-
-    /**
-     * @dev Creates a new vesting schedule for an investor.
-     * @param beneficiary The address of the beneficiary of the vesting schedule.
-
-     */
-    function createInvestorVesting(
-        address beneficiary
-    ) public onlyOwner override {
-        _createVestingSchedule(
-            beneficiary,
-            INVESTOR_CLIFF_DURATION_DAYS,
-            INVESTOR_VESTING_DURATION_MONTHS,
-            INVESTOR_INSTALLMENT_COUNT
-        );
+    struct VestingSchedule {
+        uint256 cliffDuration;
+        uint256 vestingDuration;
+        uint256 installmentCount;
+        uint256 releasedAmount;
     }
 
-    /**
-     * @dev Creates a new vesting schedule for a founder.
-     * @param beneficiary The address of the beneficiary of the vesting schedule.
+    mapping(address => VestingSchedule) public vestingSchedules;
 
-     */
-    function createFounderVesting(
-        address beneficiary
-    ) public onlyOwner override {
-        _createVestingSchedule(
-            beneficiary,
-            FOUNDER_CLIFF_DURATION_DAYS,
-            FOUNDER_VESTING_DURATION_MONTHS,
-            FOUNDER_INSTALLMENT_COUNT
-        );
+    IERC20 public aimToken;
+    IERC20 public amdToken;
+    uint256 public cumulativeVestedAmount;
+    uint256 public globalStartTime;
+
+    event VestingScheduleCreated(address indexed beneficiary, uint256 cliffDuration, uint256 vestingDuration, uint256 installmentCount);
+    event TokensReleased(address indexed beneficiary, uint256 amount);
+
+    constructor(address initialOwner, address aimTokenAddress, address amdTokenAddress) Ownable(initialOwner) {
+        require(aimTokenAddress != address(0), "Invalid AIM token address");
+        require(amdTokenAddress != address(0), "Invalid AMD token address");
+        aimToken = IERC20(aimTokenAddress);
+        amdToken = IERC20(amdTokenAddress);
     }
 
-    /**
-     * @dev Creates a new vesting schedule for a partner.
-     * @param beneficiary The address of the beneficiary of the vesting schedule.
+    function createInvestorVesting(address beneficiary) public onlyOwner {
+        _createVestingSchedule(beneficiary, 364, 36, 36);
+    }
 
-     */
-    function createPartnerVesting(
-        address beneficiary
-    ) public onlyOwner override {
-        _createVestingSchedule(
-            beneficiary,
-            PARTNER_CLIFF_DURATION_DAYS,
-            PARTNER_VESTING_DURATION_MONTHS,
-            PARTNER_INSTALLMENT_COUNT
-        );
+    function createFounderVesting(address beneficiary) public onlyOwner {
+        _createVestingSchedule(beneficiary, 665, 30, 30);
+    }
+
+    function createPartnerVesting(address beneficiary) public onlyOwner {
+        _createVestingSchedule(beneficiary, 970, 1, 1);
+    }
+
+    function _createVestingSchedule(address beneficiary, uint256 cliffDurationInDays, uint256 vestingDurationInMonths, uint256 installmentCount) internal {
+        require(aimToken.balanceOf(beneficiary) > 0, "Beneficiary has no AIM tokens");
+        require(vestingSchedules[beneficiary].vestingDuration == 0, "Vesting schedule already exists");
+        cumulativeVestedAmount += aimToken.balanceOf(beneficiary);
+
+        uint256 cliffDuration = cliffDurationInDays * 86400;
+        uint256 vestingDuration = vestingDurationInMonths * 30 days;
+
+        vestingSchedules[beneficiary] = VestingSchedule(cliffDuration, vestingDuration, installmentCount, 0);
+        emit VestingScheduleCreated(beneficiary, cliffDuration, vestingDuration, installmentCount);
+    }
+
+    function claim() public nonReentrant {
+        _releaseVestedTokens(msg.sender);
+    }
+
+    function releaseTo(address beneficiary) public nonReentrant onlyOwner {
+        _releaseVestedTokens(beneficiary);
+    }
+
+    function _releaseVestedTokens(address beneficiary) internal {
+        require(globalStartTime > 0, "Global start time not set");
+        uint256 totalReleasableAmount = getCurrentlyReleasableAmount(beneficiary);
+
+        if (totalReleasableAmount > 0) {
+            VestingSchedule storage schedule = vestingSchedules[beneficiary];
+            schedule.releasedAmount += totalReleasableAmount;
+            amdToken.safeTransfer(beneficiary, totalReleasableAmount);
+            emit TokensReleased(beneficiary, totalReleasableAmount);
+        }
+    }
+
+    function setGlobalStartTime(uint256 newStartTime) public onlyOwner {
+        require(globalStartTime == 0, "Global start time already set");
+        globalStartTime = (newStartTime / 86400) * 86400;
+    }
+
+    function getCurrentlyReleasableAmount(address beneficiary) public view returns (uint256) {
+        VestingSchedule storage schedule = vestingSchedules[beneficiary];
+        if (globalStartTime == 0 || block.timestamp < globalStartTime + schedule.cliffDuration) {
+            return 0;
+        }
+
+        uint256 timeSinceVestingStart = block.timestamp - (globalStartTime + schedule.cliffDuration);
+        uint256 installmentDuration = schedule.vestingDuration / schedule.installmentCount;
+
+        if (installmentDuration == 0) {
+            return aimToken.balanceOf(beneficiary) - schedule.releasedAmount;
+        }
+
+        uint256 vestedInstallments = timeSinceVestingStart / installmentDuration;
+        if (vestedInstallments > schedule.installmentCount) {
+            vestedInstallments = schedule.installmentCount;
+        }
+
+        uint256 totalVestedAmount = (aimToken.balanceOf(beneficiary) * vestedInstallments) / schedule.installmentCount;
+
+        // Add any remainder from the total amount to the last installment to ensure full distribution
+        if (vestedInstallments == schedule.installmentCount) {
+            totalVestedAmount += aimToken.balanceOf(beneficiary) % schedule.installmentCount;
+        }
+
+        return totalVestedAmount - schedule.releasedAmount;
     }
 }
