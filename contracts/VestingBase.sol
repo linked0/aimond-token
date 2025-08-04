@@ -1,20 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /**
- * @title LedgerToken
+ * @title VestingBase
  * @author AimondLabs
  * @notice This abstract contract provides a framework for creating ledger tokens that represent a claim on a real ERC20 token (AimondToken),
  * subject to a vesting schedule. It handles the creation of vesting schedules, tracks vested amounts, and allows beneficiaries to release their tokens once vested.
  * It is designed to be inherited by specific token contracts that define their own supply and vesting parameters.
  */
-abstract contract LedgerToken is ERC20, Ownable, ReentrancyGuard {
+abstract contract VestingBase is Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
     /**
      * @dev Represents a single vesting schedule for a beneficiary.
@@ -36,6 +35,9 @@ abstract contract LedgerToken is ERC20, Ownable, ReentrancyGuard {
     uint256 public immutable totalAllocatedTokens;
     /// @dev A mapping from a beneficiary's address to their array of vesting schedules.
     mapping(address => VestingSchedule[]) public vestingSchedules;
+    
+    /// @dev The instance of the AIM token contract.
+    IERC20 public aimToken;
     /// @dev The instance of the main AimondToken (AMD) contract.
     IERC20 public amdToken;
     /// @dev The cumulative amount of tokens that have been assigned to vesting schedules.
@@ -67,25 +69,20 @@ abstract contract LedgerToken is ERC20, Ownable, ReentrancyGuard {
     event TokensReleased(address indexed beneficiary, uint256 amount);
 
     /**
-     * @dev Initializes the LedgerToken contract.
-     * @param name_ The name of the ledger token (e.g., "Founder Aimond").
-     * @param symbol_ The symbol of the ledger token (e.g., "AIMF").
+     * @dev Initializes the VestingBase contract.
      * @param initialOwner The address that will have ownership of the contract.
+     * @param aimTokenAddress The address of the AIM token contract.
      * @param amdTokenAddress The address of the main AimondToken (AMD) contract.
      */
-    constructor(
-        string memory name_,
-        string memory symbol_,
-        address initialOwner,
-        address amdTokenAddress
-    ) ERC20(name_, symbol_) Ownable(initialOwner) {
+    constructor(address initialOwner, address aimTokenAddress, address amdTokenAddress) Ownable(initialOwner) {
+        require(aimTokenAddress != address(0), "Invalid AIM token address");
         require(amdTokenAddress != address(0), "Invalid AMD token address");
+        aimToken = IERC20(aimTokenAddress);
         amdToken = IERC20(amdTokenAddress);
     }
 
     /**
      * @dev Internal function to create and store a new vesting schedule for a beneficiary.
-     * It mints the corresponding amount of ledger tokens to the beneficiary.
      * @param beneficiary The address of the beneficiary.
      * @param totalAmount The total amount of tokens to vest.
      * @param cliffDurationInDays The cliff duration in days.
@@ -124,8 +121,6 @@ abstract contract LedgerToken is ERC20, Ownable, ReentrancyGuard {
             })
         );
 
-        _mint(beneficiary, totalAmount);
-
         emit VestingScheduleCreated(
             beneficiary,
             totalAmount,
@@ -136,19 +131,38 @@ abstract contract LedgerToken is ERC20, Ownable, ReentrancyGuard {
     }
 
     /**
-     * @notice Allows a beneficiary to release any vested tokens they are entitled to.
+     * @notice Allows a beneficiary to claim any vested tokens they are entitled to.
      * The amount of releasable tokens is calculated based on the current time and the beneficiary's vesting schedules.
      * This function transfers the real AimondToken (AMD) to the beneficiary.
      */
-    function releaseVestedTokens() public nonReentrant {
+    function claim() public {
+        _releaseVestedTokens(msg.sender);
+    }
+
+    /**
+     * @notice Allows the owner to release vested tokens on behalf of a beneficiary.
+     * This is useful if the beneficiary is unable to call the function themselves.
+     * @param beneficiary The address of the beneficiary to release tokens for.
+     */
+    function releaseTo(
+        address beneficiary
+    ) public onlyOwner {
+        _releaseVestedTokens(beneficiary);
+    }
+
+    /**
+     * @dev Internal function to perform the actual release of vested tokens for a beneficiary.
+     * @param beneficiary The address of the beneficiary.
+     */
+    function _releaseVestedTokens(address beneficiary) internal nonReentrant {
         require(globalStartTime > 0, "Global start time not set");
         uint256 totalReleasableAmount = _getCurrentlyReleasableAmount(
-            msg.sender
+            beneficiary
         );
 
         if (totalReleasableAmount > 0) {
             uint256 remainingToRelease = totalReleasableAmount;
-            VestingSchedule[] storage schedules = vestingSchedules[msg.sender];
+            VestingSchedule[] storage schedules = vestingSchedules[beneficiary];
             for (uint i = 0; i < schedules.length; i++) {
                 uint256 releasable = _calculateReleasableAmount(schedules[i]);
                 if (releasable > 0) {
@@ -160,8 +174,8 @@ abstract contract LedgerToken is ERC20, Ownable, ReentrancyGuard {
                 }
             }
 
-            amdToken.safeTransfer(msg.sender, totalReleasableAmount);
-            emit TokensReleased(msg.sender, totalReleasableAmount);
+            amdToken.safeTransfer(beneficiary, totalReleasableAmount);
+            emit TokensReleased(beneficiary, totalReleasableAmount);
         }
     }
 

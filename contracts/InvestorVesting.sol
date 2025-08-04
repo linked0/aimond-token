@@ -1,22 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "./LedgerToken.sol";
+import "./VestingBase.sol";
 
 /**
- * @title AIMAimond
+ * @title InvestorVesting
  * @dev This contract manages the vesting schedule for investors' AIM tokens.
- * It is a LedgerToken, meaning it mints ledger tokens that can be exchanged for the real AimondToken after a vesting period.
+ * It is a VestingBase, meaning it mints ledger tokens that can be exchanged for the real AimondToken after a vesting period.
  */
-contract AIMAimond is LedgerToken {
+contract InvestorVesting is VestingBase {
     /**
-     * @dev The total supply of AIMAimond tokens.
+     * @dev The total supply of InvestorVesting tokens.
      */
-    uint256 public constant TOTAL_SUPPLY = 88_000_000_000 * (10 ** 18);
     /**
      * @dev The maximum number of tokens that can be allocated to this vesting group.
      */
-    uint256 public constant groupAllocationCap = 24_000_000_000 * (10 ** 18);
+    uint256 public constant groupAllocationCap = 24_000_000_000 * (10 ** 8);
     /**
      * @dev The cliff duration in days.
      * Using 363 days ensures the cliff always ends before the exact anniversary,
@@ -39,10 +38,9 @@ contract AIMAimond is LedgerToken {
      */
     constructor(
         address initialOwner,
+        address aimTokenAddress,
         address amdTokenAddress
-    ) LedgerToken("AIM Aimond", "AIM", initialOwner, amdTokenAddress) {
-        _mint(initialOwner, TOTAL_SUPPLY);
-    }
+    ) VestingBase(initialOwner, aimTokenAddress, amdTokenAddress) {}
 
     /**
      * @dev Creates a new vesting schedule for a beneficiary.
@@ -54,7 +52,7 @@ contract AIMAimond is LedgerToken {
         uint256 totalAmount
     ) public onlyOwner {
         require(
-            cumulativeVestedAmount + totalAmount <= TOTAL_SUPPLY,
+            cumulativeVestedAmount + totalAmount <= groupAllocationCap,
             "Exceeds total allocation for this vesting contract"
         );
         _createVestingSchedule(
