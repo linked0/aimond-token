@@ -11,7 +11,7 @@ import "./VestingBase.sol";
  */
 contract PartnerVesting is VestingBase {
     
-    uint256 public constant groupAllocationCap = 5_200_000_000 * (10 ** 8);
+    uint256 public constant groupAllocationCap = 5_200_000_000;
     /**
      * @dev The cliff duration in days (32 months).
      * 365 days + 363 days + 30 days * 8 months = 968 days
@@ -35,9 +35,8 @@ contract PartnerVesting is VestingBase {
      */
     constructor(
         address initialOwner,
-        address aimTokenAddress,
         address amdTokenAddress
-    ) VestingBase(initialOwner, aimTokenAddress, amdTokenAddress) {}
+    ) VestingBase(initialOwner, amdTokenAddress) {}
 
     /**
      * @dev Creates a new vesting schedule for a beneficiary.

@@ -15,7 +15,7 @@ contract InvestorVesting is VestingBase {
     /**
      * @dev The maximum number of tokens that can be allocated to this vesting group.
      */
-    uint256 public constant groupAllocationCap = 24_000_000_000 * (10 ** 8);
+    uint256 public constant groupAllocationCap = 24_000_000_000;
     /**
      * @dev The cliff duration in days.
      * Using 363 days ensures the cliff always ends before the exact anniversary,
@@ -38,9 +38,8 @@ contract InvestorVesting is VestingBase {
      */
     constructor(
         address initialOwner,
-        address aimTokenAddress,
         address amdTokenAddress
-    ) VestingBase(initialOwner, aimTokenAddress, amdTokenAddress) {}
+    ) VestingBase(initialOwner, amdTokenAddress) {}
 
     /**
      * @dev Creates a new vesting schedule for a beneficiary.

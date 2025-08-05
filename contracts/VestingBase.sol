@@ -4,6 +4,7 @@ pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /**
@@ -14,7 +15,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
  * It is designed to be inherited by specific token contracts that define their own supply and vesting parameters.
  */
 abstract contract VestingBase is Ownable, ReentrancyGuard {
-    using SafeERC20 for IERC20;
+    using SafeERC20 for IERC20Metadata;
     /**
      * @dev Represents a single vesting schedule for a beneficiary.
      * @param totalAmount The total amount of tokens allocated in this schedule.
@@ -36,12 +37,10 @@ abstract contract VestingBase is Ownable, ReentrancyGuard {
     /// @dev A mapping from a beneficiary's address to their array of vesting schedules.
     mapping(address => VestingSchedule[]) public vestingSchedules;
     
-    /// @dev The instance of the AIM token contract.
-    IERC20 public aimToken;
     /// @dev The instance of the main AimondToken (AMD) contract.
-    IERC20 public amdToken;
+    IERC20Metadata public amdToken;
     /// @dev The cumulative amount of tokens that have been assigned to vesting schedules.
-    uint256 public cumulativeVestedAmount;
+        uint256 public cumulativeVestedAmount;
     /// @dev The official start time for all vesting schedules in this contract, set once by the owner.
     uint256 public globalStartTime;
 
@@ -69,16 +68,26 @@ abstract contract VestingBase is Ownable, ReentrancyGuard {
     event TokensReleased(address indexed beneficiary, uint256 amount);
 
     /**
+     * @dev Emitted when a vesting schedule is removed by the owner.
+     * This can only happen before the global start time is set.
+     * @param beneficiary The address whose schedule was removed.
+     * @param scheduleIndex The index of the schedule that was removed.
+     * @param amount The token amount that was returned to the allocation pool.
+     */
+    event ScheduleRemoved(
+        address indexed beneficiary,
+        uint256 scheduleIndex,
+        uint256 amount
+    );
+
+    /**
      * @dev Initializes the VestingBase contract.
      * @param initialOwner The address that will have ownership of the contract.
-     * @param aimTokenAddress The address of the AIM token contract.
      * @param amdTokenAddress The address of the main AimondToken (AMD) contract.
      */
-    constructor(address initialOwner, address aimTokenAddress, address amdTokenAddress) Ownable(initialOwner) {
-        require(aimTokenAddress != address(0), "Invalid AIM token address");
+    constructor(address initialOwner, address amdTokenAddress) Ownable(initialOwner) {
         require(amdTokenAddress != address(0), "Invalid AMD token address");
-        aimToken = IERC20(aimTokenAddress);
-        amdToken = IERC20(amdTokenAddress);
+        amdToken = IERC20Metadata(amdTokenAddress);
     }
 
     /**
@@ -113,7 +122,7 @@ abstract contract VestingBase is Ownable, ReentrancyGuard {
 
         vestingSchedules[beneficiary].push(
             VestingSchedule({
-                totalAmount: totalAmount,
+                totalAmount: totalAmount * (10 ** amdToken.decimals()),
                 cliffDuration: cliffDuration,
                 vestingDuration: vestingDuration,
                 installmentCount: installmentCount,
@@ -188,6 +197,37 @@ abstract contract VestingBase is Ownable, ReentrancyGuard {
         require(globalStartTime == 0, "Global start time already set");
         require(newStartTime > 0, "New start time must be greater than 0");
         globalStartTime = (newStartTime / 86400) * 86400;
+    }
+
+    /**
+     * @notice Allows the owner to remove a vesting schedule for a beneficiary.
+     * This can ONLY be called before the global start time has been set.
+     * This is a safety feature to correct mistakes during the setup phase.
+     * @param beneficiary The address of the beneficiary whose schedule is being removed.
+     * @param scheduleIndex The index of the schedule to remove in the beneficiary's list.
+     */
+    function removeSchedule(
+        address beneficiary,
+        uint256 scheduleIndex
+    ) public onlyOwner {
+        // This is the crucial check that makes the function safe.
+        require(globalStartTime == 0, "Cannot remove schedule after start time");
+
+        VestingSchedule[] storage schedules = vestingSchedules[beneficiary];
+        require(scheduleIndex < schedules.length, "Invalid schedule index");
+
+        // Get the amount from the schedule being removed.
+        uint256 scaledAmountToRemove = schedules[scheduleIndex].totalAmount;
+        uint256 unscaledAmountToRemove = scaledAmountToRemove / (10 ** amdToken.decimals());
+
+        // Remove the schedule from the array by swapping with the last element and popping.
+        schedules[scheduleIndex] = schedules[schedules.length - 1];
+        schedules.pop();
+
+        // Decrease the cumulative vested amount (unscaled)
+        cumulativeVestedAmount -= unscaledAmountToRemove;
+
+        emit ScheduleRemoved(beneficiary, scheduleIndex, unscaledAmountToRemove);
     }
 
     /**
