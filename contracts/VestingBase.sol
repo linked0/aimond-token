@@ -68,16 +68,13 @@ abstract contract VestingBase is Ownable, ReentrancyGuard {
     event TokensReleased(address indexed beneficiary, uint256 amount);
 
     /**
-     * @dev Emitted when a vesting schedule is removed by the owner.
-     * This can only happen before the global start time is set.
-     * @param beneficiary The address whose schedule was removed.
-     * @param scheduleIndex The index of the schedule that was removed.
-     * @param amount The token amount that was returned to the allocation pool.
+     * @dev Emitted when a beneficiary cancels their own schedules.
+     * @param beneficiary The address whose schedules were cancelled.
+     * @param totalAmountCancelled The total token amount that was returned to the allocation pool.
      */
-    event ScheduleRemoved(
+    event SchedulesCancelled(
         address indexed beneficiary,
-        uint256 scheduleIndex,
-        uint256 amount
+        uint256 totalAmountCancelled
     );
 
     /**
@@ -199,35 +196,33 @@ abstract contract VestingBase is Ownable, ReentrancyGuard {
         globalStartTime = (newStartTime / 86400) * 86400;
     }
 
+    function getVestingScheduleCount(address beneficiary) public view returns (uint256) {
+        return vestingSchedules[beneficiary].length;
+    }
+
     /**
-     * @notice Allows the owner to remove a vesting schedule for a beneficiary.
+     * @notice Allows a beneficiary to cancel all their vesting schedules.
      * This can ONLY be called before the global start time has been set.
-     * This is a safety feature to correct mistakes during the setup phase.
-     * @param beneficiary The address of the beneficiary whose schedule is being removed.
-     * @param scheduleIndex The index of the schedule to remove in the beneficiary's list.
+     * This is useful if an incorrect amount was allocated and needs to be reset by the beneficiary.
      */
-    function removeSchedule(
-        address beneficiary,
-        uint256 scheduleIndex
-    ) public onlyOwner {
-        // This is the crucial check that makes the function safe.
-        require(globalStartTime == 0, "Cannot remove schedule after start time");
+    function cancelMySchedules() public {
+        require(globalStartTime == 0, "Vesting has started, cannot cancel schedules");
 
-        VestingSchedule[] storage schedules = vestingSchedules[beneficiary];
-        require(scheduleIndex < schedules.length, "Invalid schedule index");
+        uint256 totalAmountCancelled = 0;
+        VestingSchedule[] storage schedules = vestingSchedules[msg.sender];
 
-        // Get the amount from the schedule being removed.
-        uint256 scaledAmountToRemove = schedules[scheduleIndex].totalAmount;
-        uint256 unscaledAmountToRemove = scaledAmountToRemove / (10 ** amdToken.decimals());
+        // Sum up all amounts and clear the schedules
+        for (uint i = 0; i < schedules.length; i++) {
+            totalAmountCancelled += schedules[i].totalAmount / (10 ** amdToken.decimals());
+        }
 
-        // Remove the schedule from the array by swapping with the last element and popping.
-        schedules[scheduleIndex] = schedules[schedules.length - 1];
-        schedules.pop();
+        // Clear the array
+        delete vestingSchedules[msg.sender];
 
         // Decrease the cumulative vested amount (unscaled)
-        cumulativeVestedAmount -= unscaledAmountToRemove;
+        cumulativeVestedAmount -= totalAmountCancelled;
 
-        emit ScheduleRemoved(beneficiary, scheduleIndex, unscaledAmountToRemove);
+        emit SchedulesCancelled(msg.sender, totalAmountCancelled);
     }
 
     /**

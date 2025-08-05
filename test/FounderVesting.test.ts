@@ -34,16 +34,31 @@ describe("FounderVesting", function () {
         expect(await amdToken.balanceOf(founder1.address)).to.be.closeTo(ethers.parseUnits("2000", 18), 1);
     });
 
-    it("Should allow owner to remove a schedule before the start time", async function () {
-        const scheduleAmount = 20000;
-        await vestingContract.connect(owner).createVestingSchedule(founder1.address, scheduleAmount);
+    
 
-        let schedule = await vestingContract.vestingSchedules(founder1.address, 0);
-        expect(schedule.totalAmount).to.equal(ethers.parseUnits(scheduleAmount.toString(), 18));
+    it("Should allow beneficiary to cancel their own schedules before start time", async function () {
+        const scheduleAmount1 = BigInt(10000);
+        const scheduleAmount2 = BigInt(5000);
+        await vestingContract.connect(owner).createVestingSchedule(founder1.address, scheduleAmount1);
+        await vestingContract.connect(owner).createVestingSchedule(founder1.address, scheduleAmount2);
 
-        await vestingContract.connect(owner).removeSchedule(founder1.address, 0);
+        expect(await vestingContract.getVestingScheduleCount(founder1.address)).to.equal(2);
+
+        const initialCumulativeVestedAmount = await vestingContract.cumulativeVestedAmount();
+
+        await expect(vestingContract.connect(founder1).cancelMySchedules())
+            .to.emit(vestingContract, "SchedulesCancelled")
+            .withArgs(founder1.address, BigInt(scheduleAmount1 + scheduleAmount2));
 
         await expect(vestingContract.vestingSchedules(founder1.address, 0)).to.be.reverted;
+        expect(await vestingContract.cumulativeVestedAmount()).to.equal(initialCumulativeVestedAmount - (scheduleAmount1 + scheduleAmount2));
+
+        // Should revert if globalStartTime is set
+        const listingTimestamp = await time.latest();
+        await vestingContract.connect(owner).setGlobalStartTime(listingTimestamp);
+        await vestingContract.connect(owner).createVestingSchedule(founder1.address, scheduleAmount1);
+        await expect(vestingContract.connect(founder1).cancelMySchedules())
+            .to.be.revertedWith("Vesting has started, cannot cancel schedules");
     });
 
     

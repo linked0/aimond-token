@@ -34,17 +34,7 @@ describe("InvestorVesting", function () {
         expect(await amdToken.balanceOf(investor1.address)).to.be.closeTo(ethers.parseUnits("1000", 18), 1);
     });
 
-    it("Should allow owner to remove a schedule before the start time", async function () {
-        const scheduleAmount = 10000;
-        await vestingContract.connect(owner).createVestingSchedule(investor1.address, scheduleAmount);
-
-        let schedule = await vestingContract.vestingSchedules(investor1.address, 0);
-        expect(schedule.totalAmount).to.equal(ethers.parseUnits(scheduleAmount.toString(), 18));
-
-        await vestingContract.connect(owner).removeSchedule(investor1.address, 0);
-
-        await expect(vestingContract.vestingSchedules(investor1.address, 0)).to.be.reverted;
-    });
+    
 
     
 });
