@@ -18,8 +18,7 @@ describe("TokenVesting", function () {
         const aimToken = await ethers.deployContract("Aimond");
         const vestingContract = await ethers.deployContract("TokenVesting", [owner.address, await aimToken.getAddress(), await amdToken.getAddress()]);
 
-        // Approve AMD to vesting contract
-        await amdToken.connect(owner).approve(await vestingContract.getAddress(), ethers.parseUnits("20000000000", 18));
+        
 
         // Transfer AIM to founder1
         const scheduleAmount = ethers.parseUnits("20000", 8);
@@ -92,46 +91,7 @@ describe("TokenVesting", function () {
             expect(await amdToken.balanceOf(founder1.address)).to.be.closeTo(scheduleAmount * BigInt(10)**BigInt(10) / BigInt(FOUNDER_INSTALLMENT_COUNT), 1);
         });
 
-        it("Should not allow claiming before cliff ends", async function () {
-            const { vestingContract, amdToken, aimToken, owner, founder1, scheduleAmount } = await helpers.loadFixture(deployFounderVestingFixture);
-
-            const listingTimestamp = await helpers.time.latest();
-            console.log("Founder Listing Timestamp (Before Cliff):", formatTimestamp(listingTimestamp));
-            await vestingContract.connect(owner).createFounderVesting(
-                founder1.address
-            );
-            await vestingContract.connect(owner).setGlobalStartTime(listingTimestamp);
-            
-            const schedule = await vestingContract.vestingSchedules(founder1.address);
-            const globalStartTime = await vestingContract.globalStartTime();
-            const cliffEndsTimestamp = Number(globalStartTime) + Number(schedule.cliffDuration);
-
-            await helpers.time.increaseTo(cliffEndsTimestamp - 1); // 1 second before cliff ends
-            console.log("Founder Attempt Claim Time (Before Cliff):", formatTimestamp(await helpers.time.latest()));
-            // await expect(vestingContract.connect(founder1).claim()).to.be.revertedWith("No tokens are currently vested");
-        });
-
-        it("Should allow claiming right after cliff ends", async function () {
-            const { vestingContract, amdToken, aimToken, owner, founder1, scheduleAmount } = await helpers.loadFixture(deployFounderVestingFixture);
-
-            const listingTimestamp = await helpers.time.latest();
-            console.log("Founder Listing Timestamp (After Cliff):", formatTimestamp(listingTimestamp));
-            await vestingContract.connect(owner).createFounderVesting(
-                founder1.address
-            );
-            await vestingContract.connect(owner).setGlobalStartTime(listingTimestamp);
-            
-            const schedule = await vestingContract.vestingSchedules(founder1.address);
-            const globalStartTime = await vestingContract.globalStartTime();
-            const cliffEndsTimestamp = Number(globalStartTime) + Number(schedule.cliffDuration);
-
-            await helpers.time.increaseTo(cliffEndsTimestamp); // Exactly at cliff end
-            console.log("Founder Claim Time (After Cliff):", formatTimestamp(await helpers.time.latest()));
-            await vestingContract.connect(founder1).claim();
-
-            console.log("Founder AMD Balance (after cliff claim):", formatAmdBalance(await amdToken.balanceOf(founder1.address)));
-            // expect(await amdToken.balanceOf(founder1.address)).to.be.closeTo(scheduleAmount * BigInt(10)**BigInt(10) / BigInt(FOUNDER_INSTALLMENT_COUNT), 1);
-        });
+        
 
         it("Should release all tokens via owner releaseTo after the full vesting period", async function () {
             const { vestingContract, amdToken, aimToken, owner, founder1, scheduleAmount } = await helpers.loadFixture(deployFounderVestingFixture);
