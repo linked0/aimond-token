@@ -18,8 +18,7 @@ describe("TokenVesting", function () {
         const aimToken = await ethers.deployContract("Aimond");
         const vestingContract = await ethers.deployContract("TokenVesting", [owner.address, await aimToken.getAddress(), await amdToken.getAddress()]);
 
-        // Approve AMD to vesting contract
-        await amdToken.connect(owner).approve(await vestingContract.getAddress(), ethers.parseUnits("5200000000", 18));
+        
 
         // Transfer AIM to partner1
         const scheduleAmount = ethers.parseUnits("5000", 8);

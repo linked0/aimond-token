@@ -195,7 +195,7 @@ contract TokenVesting is Ownable, ReentrancyGuard {
             VestingSchedule storage schedule = vestingSchedules[beneficiary];
             uint256 scaledReleasableAmount = totalReleasableAmount * (10 ** (amdToken.decimals() - aimToken.decimals()));
             schedule.releasedAmount += totalReleasableAmount;
-            SafeERC20.safeTransferFrom(IERC20(amdToken), owner(), beneficiary, scaledReleasableAmount);
+            amdToken.safeTransfer(beneficiary, scaledReleasableAmount);
             emit TokensReleased(beneficiary, scaledReleasableAmount);
         }
     }
