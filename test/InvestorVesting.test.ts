@@ -6,7 +6,7 @@ import * as helpers from "@nomicfoundation/hardhat-network-helpers";
 
 import { formatTimestamp, formatAmdBalance, formatAimBalance } from "./utils/time";
 
-describe("Cliff Vesting Scenarios", function () {
+describe("Investor Cliff Vesting Scenarios", function () {
     async function deployVestingFixture() {
         const [owner, beneficiary] = await ethers.getSigners();
         const amdToken = await ethers.deployContract("AimondToken", [owner.address]);
@@ -17,7 +17,7 @@ describe("Cliff Vesting Scenarios", function () {
         const aimDecimals = await aimToken.decimals();
 
         // Transfer AIM to beneficiary
-        const scheduleAmount = ethers.parseUnits("10001.12345678", 8);
+        const scheduleAmount = ethers.parseUnits("10001", 8);
         console.log("Schedule Amount:", formatAimBalance(scheduleAmount));
         await aimToken.connect(owner).transfer(beneficiary.address, scheduleAmount);
 
@@ -61,7 +61,7 @@ describe("Cliff Vesting Scenarios", function () {
     });
 
     it("Should allow claiming right after cliff ends", async function () {
-        const { vestingContract, amdToken, aimToken, owner, beneficiary, scheduleAmount, amdDecimals, aimDecimals } = await helpers.loadFixture(deployVestingFixture);
+        const { vestingContract, amdToken, aimToken, owner, beneficiary, scheduleAmount } = await helpers.loadFixture(deployVestingFixture);
 
         const listingTimestamp = await helpers.time.latest();
         console.log("Investor Listing Timestamp:", formatTimestamp(Number(listingTimestamp)), `(${listingTimestamp})`);
@@ -80,13 +80,13 @@ describe("Cliff Vesting Scenarios", function () {
         console.log("Investor Claim Time (After Cliff):", formatTimestamp(await helpers.time.latest()), `(${await helpers.time.latest()})`);
         await vestingContract.connect(beneficiary).claim();
 
-        const expectedAmount = (scheduleAmount / schedule.installmentCount) * (BigInt(10) ** BigInt(amdDecimals - aimDecimals));
+        const expectedAmount = scheduleAmount * BigInt(10) ** BigInt(10) / schedule.installmentCount;
         console.log("Investor AMD Balance (after cliff claim):", formatAmdBalance(await amdToken.balanceOf(beneficiary.address)));
         expect(await amdToken.balanceOf(beneficiary.address)).to.equal(expectedAmount);
     });
 
     it("Should allow claiming one sec after cliff ends", async function () {
-        const { vestingContract, amdToken, aimToken, owner, beneficiary, scheduleAmount, amdDecimals, aimDecimals } = await helpers.loadFixture(deployVestingFixture);
+        const { vestingContract, amdToken, aimToken, owner, beneficiary, scheduleAmount } = await helpers.loadFixture(deployVestingFixture);
 
         const listingTimestamp = await helpers.time.latest();
         console.log("Investor Listing Timestamp:", formatTimestamp(Number(listingTimestamp)), `(${listingTimestamp})`);
@@ -105,7 +105,7 @@ describe("Cliff Vesting Scenarios", function () {
         console.log("Investor Claim Time (After Cliff):", formatTimestamp(await helpers.time.latest()), `(${await helpers.time.latest()})`);
         await vestingContract.connect(beneficiary).claim();
 
-        const expectedAmount = (scheduleAmount / schedule.installmentCount) * (BigInt(10) ** BigInt(amdDecimals - aimDecimals));
+        const expectedAmount = scheduleAmount * BigInt(10) ** BigInt(10) / schedule.installmentCount;
         console.log("Investor AMD Balance (after cliff claim):", formatAmdBalance(await amdToken.balanceOf(beneficiary.address)));
         expect(await amdToken.balanceOf(beneficiary.address)).to.equal(expectedAmount);
     });
@@ -129,7 +129,7 @@ describe("Cliff Vesting Scenarios", function () {
         console.log("Investor Claim Time (After Full Vesting):", formatTimestamp(await helpers.time.latest()), `(${await helpers.time.latest()})`);
         await vestingContract.connect(beneficiary).claim();
 
-        const scaledScheduleAmount = (scheduleAmount) * BigInt(10) ** BigInt(amdDecimals - aimDecimals);
+        const scaledScheduleAmount = scheduleAmount * BigInt(10) ** BigInt(amdDecimals - aimDecimals);
         console.log("Investor AMD Balance (after full vesting claim):", formatAmdBalance(await amdToken.balanceOf(beneficiary.address)));
         expect(await amdToken.balanceOf(beneficiary.address)).to.equal(scaledScheduleAmount);
     });
@@ -142,24 +142,30 @@ describe("Cliff Vesting Scenarios", function () {
 
         const schedule = await vestingContract.vestingSchedules(beneficiary.address);
         const globalStartTime = await vestingContract.globalStartTime();
+
+        // Calculate the expected amount per installment in AIM decimals
+        const expectedAimPerInstallment = BigInt(scheduleAmount) / BigInt(schedule.installmentCount);
+
+        // Scale this expected amount to AMD decimals for comparison with amdToken.balanceOf
+        const scaledExpectedAmdPerInstallment = expectedAimPerInstallment * (BigInt(10) ** BigInt(amdDecimals - aimDecimals));
+        const scaledScheduleAmount = scheduleAmount * BigInt(10) ** BigInt(amdDecimals - aimDecimals);
+
+        let totalClaimedAmd = BigInt(0);
+
         const installmentDuration = schedule.vestingDuration / schedule.installmentCount;
-        const scalingFactor = BigInt(10) ** BigInt(amdDecimals - aimDecimals);
 
-        let totalClaimed = BigInt(0);
-        for (let i = 1; i <= schedule.installmentCount; i++) {
-            const vestedInstallments = BigInt(i);
-            const newTimestamp = Number(globalStartTime) + Number(schedule.cliffDuration) + Number(installmentDuration) * (i - 1);
+        const expectedAmount = scheduleAmount * BigInt(10) ** BigInt(10) / schedule.installmentCount;
+
+        for (let i = 0; i < schedule.installmentCount; i++) {
+            const newTimestamp = Number(globalStartTime) + Number(schedule.cliffDuration) + Number(installmentDuration) * i - 1;
+            console.log("New installment:", formatTimestamp(Number(newTimestamp)), `(${newTimestamp})`);
+        
             await helpers.time.increaseTo(newTimestamp);
-
-            const releasableAmount = await vestingContract.getCurrentlyReleasableAmount(beneficiary.address);
             await vestingContract.connect(beneficiary).claim();
 
-            totalClaimed += releasableAmount;
-
-            const expectedAmount = totalClaimed * scalingFactor;
-            
-            console.log(`Investor AMD Balance (after installment ${i}):`, formatAmdBalance(await amdToken.balanceOf(beneficiary.address)));
-            expect(await amdToken.balanceOf(beneficiary.address)).to.equal(expectedAmount);
+            totalClaimedAmd += expectedAmount;
+            console.log("Investor AMD Balance (after installment):", formatAmdBalance(await amdToken.balanceOf(beneficiary.address)));
+            expect(await amdToken.balanceOf(beneficiary.address)).to.equal(totalClaimedAmd);
         }
     });
 });

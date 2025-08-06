@@ -6,7 +6,7 @@ import * as helpers from "@nomicfoundation/hardhat-network-helpers";
 
 import { formatTimestamp, formatAmdBalance, formatAimBalance } from "./utils/time";
 
-describe("Cliff Vesting Scenarios", function () {
+describe("Partner Cliff Vesting Scenarios", function () {
     async function deployVestingFixture() {
         const [owner, beneficiary] = await ethers.getSigners();
         const amdToken = await ethers.deployContract("AimondToken", [owner.address]);
