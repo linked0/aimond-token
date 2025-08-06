@@ -28,6 +28,7 @@ contract VestingVault is Ownable, ReentrancyGuard {
         uint256 vestingDuration;
         uint256 installmentCount;
         uint256 releasedAmount;
+        uint256 totalAmount;
     }
 
     /// @dev Mapping from beneficiary address to their vesting schedule.
@@ -151,7 +152,8 @@ contract VestingVault is Ownable, ReentrancyGuard {
             vestingSchedules[beneficiary].vestingDuration == 0,
             "Vesting schedule already exists"
         );
-        cumulativeVestedAmount += aimToken.balanceOf(beneficiary);
+        uint256 totalAmount = aimToken.balanceOf(beneficiary);
+        cumulativeVestedAmount += totalAmount;
 
         uint256 cliffDuration = cliffDurationInDays * 86400;
         uint256 vestingDuration = vestingDurationInMonths * 30 days;
@@ -160,7 +162,8 @@ contract VestingVault is Ownable, ReentrancyGuard {
             cliffDuration,
             vestingDuration,
             installmentCount,
-            0
+            0,
+            totalAmount
         );
         emit VestingScheduleCreated(
             beneficiary,
@@ -244,8 +247,7 @@ contract VestingVault is Ownable, ReentrancyGuard {
             vestedInstallments = schedule.installmentCount;
         }
 
-        uint256 totalVestedAmount = (aimToken.balanceOf(beneficiary) *
-            vestedInstallments) / schedule.installmentCount;
+        uint256 totalVestedAmount = (schedule.totalAmount * vestedInstallments) / schedule.installmentCount;
 
         return totalVestedAmount - schedule.releasedAmount;
     }
