@@ -8,12 +8,12 @@ import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /**
- * @title TokenVesting
+ * @title VestingVault
  * @author AimondLabs
  * @notice This contract manages the vesting of Aimond (AIM) tokens for various stakeholders, including investors, founders, and partners.
  * It allows for the creation of different vesting schedules based on the stakeholder's role and facilitates the release of vested tokens over time.
  */
-contract TokenVesting is Ownable, ReentrancyGuard {
+contract VestingVault is Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     /**
@@ -193,9 +193,14 @@ contract TokenVesting is Ownable, ReentrancyGuard {
 
         if (totalReleasableAmount > 0) {
             VestingSchedule storage schedule = vestingSchedules[beneficiary];
-            uint256 scaledReleasableAmount = totalReleasableAmount * (10 ** (amdToken.decimals() - aimToken.decimals()));
+            uint256 scaledReleasableAmount = totalReleasableAmount *
+                (10 ** (amdToken.decimals() - aimToken.decimals()));
             schedule.releasedAmount += totalReleasableAmount;
-            amdToken.safeTransfer(beneficiary, scaledReleasableAmount);
+            SafeERC20.safeTransfer(
+                amdToken,
+                beneficiary,
+                scaledReleasableAmount
+            );
             emit TokensReleased(beneficiary, scaledReleasableAmount);
         }
     }
@@ -223,8 +228,6 @@ contract TokenVesting is Ownable, ReentrancyGuard {
             return 0;
         }
 
-        uint256 timeSinceVestingStart = block.timestamp -
-            (globalStartTime + schedule.cliffDuration);
         uint256 installmentDuration = schedule.vestingDuration /
             schedule.installmentCount;
 
@@ -232,8 +235,11 @@ contract TokenVesting is Ownable, ReentrancyGuard {
             return aimToken.balanceOf(beneficiary) - schedule.releasedAmount;
         }
 
+        uint256 timeSinceVestingStart = block.timestamp -
+            (globalStartTime + schedule.cliffDuration);
         uint256 vestedInstallments = timeSinceVestingStart /
-            installmentDuration;
+            installmentDuration +
+            1;
         if (vestedInstallments > schedule.installmentCount) {
             vestedInstallments = schedule.installmentCount;
         }
