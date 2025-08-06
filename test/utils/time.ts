@@ -12,13 +12,11 @@ export function formatTimestamp(timestamp: number) {
 export function formatAmdBalance(balance: BigInt): string {
     const divisor = BigInt(10)**BigInt(18);
     const result = balance / divisor;
-    console.log(`Formatted balance (using formatAmdBalance): ${result}`);
     return result.toString();
 }
 
 export function formatAimBalance(balance: BigInt): string {
     const divisor = BigInt(10)**BigInt(8);
     const result = balance / divisor;
-    console.log(`Formatted balance (using formatAimBalance): ${result}`);
     return result.toString();
 }
