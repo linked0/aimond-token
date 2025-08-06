@@ -247,13 +247,6 @@ contract VestingVault is Ownable, ReentrancyGuard {
         uint256 totalVestedAmount = (aimToken.balanceOf(beneficiary) *
             vestedInstallments) / schedule.installmentCount;
 
-        // Add any remainder from the total amount to the last installment to ensure full distribution
-        if (vestedInstallments == schedule.installmentCount) {
-            totalVestedAmount +=
-                aimToken.balanceOf(beneficiary) %
-                schedule.installmentCount;
-        }
-
         return totalVestedAmount - schedule.releasedAmount;
     }
 }
