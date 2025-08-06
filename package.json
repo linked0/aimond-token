@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "hardhat test",
+    "test:cliff": "hardhat test test/CliffVesting.test.ts",
     "test:invest": "hardhat test test/InvestorVesting.test.ts",
     "test:found": "hardhat test test/FounderVesting.test.ts",
     "test:emp": "hardhat test test/EmployeeVesting.test.ts",
