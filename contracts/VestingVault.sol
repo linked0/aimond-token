@@ -47,14 +47,14 @@ contract VestingVault is Ownable, ReentrancyGuard {
 
     // Vesting schedule constants
     /// @dev Cliff duration in days for investor vesting.
-    uint256 private constant INVESTOR_CLIFF_DAYS = 363;
+        uint256 private constant INVESTOR_CLIFF_DAYS = 360;
     /// @dev Vesting duration in months for investor vesting.
     uint256 private constant INVESTOR_VESTING_MONTHS = 10;
     /// @dev Number of installments for investor vesting.
     uint256 private constant INVESTOR_INSTALLMENT_COUNT = 10;
 
     /// @dev Cliff duration in days for founder vesting.
-    uint256 private constant FOUNDER_CLIFF_DAYS = 663;
+        uint256 private constant FOUNDER_CLIFF_DAYS = 660;
     /// @dev Vesting duration in months for founder vesting.
     uint256 private constant FOUNDER_VESTING_MONTHS = 10;
     /// @dev Number of installments for founder vesting.
