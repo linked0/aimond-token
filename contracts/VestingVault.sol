@@ -37,10 +37,13 @@ contract VestingVault is Ownable, ReentrancyGuard {
     IERC20Metadata public aimToken;
     /// @dev The address of the AMD token contract (the token being vested and released).
     IERC20Metadata public amdToken;
-    /// @dev The cumulative amount of tokens that have been vested across all beneficiaries.
-    uint256 public cumulativeVestedAmount;
     /// @dev The global start time for all vesting schedules, set once by the owner.
     uint256 public globalStartTime;
+
+    // New cumulative vested amounts for each category
+    uint256 public cumulativeInvestorVestedAmount;
+    uint256 public cumulativeFounderVestedAmount;
+    uint256 public cumulativePartnerVestedAmount;
 
     // Vesting schedule constants
     /// @dev Cliff duration in days for investor vesting.
@@ -63,6 +66,18 @@ contract VestingVault is Ownable, ReentrancyGuard {
     uint256 private constant PARTNER_VESTING_MONTHS = 0;
     /// @dev Number of installments for partner vesting.
     uint256 private constant PARTNER_INSTALLMENT_COUNT = 1;
+
+    /// @dev Total allocation for Investor vesting.
+    uint256 private constant INVESTOR_TOTAL_ALLOCATION =
+        24000000000 * (10 ** 18);
+    /// @dev Total allocation for Founder vesting.
+    uint256 private constant FOUNDER_TOTAL_ALLOCATION =
+        20000000000 * (10 ** 18);
+    /// @dev Total allocation for Partner vesting.
+    uint256 private constant PARTNER_TOTAL_ALLOCATION =
+        5200000000 * (10 ** 18);
+
+    uint256 private immutable AIM_DECIMALS_MULTIPLIER;
 
     /// @dev Emitted when a new vesting schedule is created for a beneficiary.
     /// @param beneficiary The address of the beneficiary for whom the schedule was created.
@@ -92,14 +107,37 @@ contract VestingVault is Ownable, ReentrancyGuard {
     ) Ownable(initialOwner) {
         require(aimTokenAddress != address(0), "Invalid AIM token address");
         require(amdTokenAddress != address(0), "Invalid AMD token address");
+        require(
+            aimTokenAddress != amdTokenAddress,
+            "AIM and AMD tokens cannot be the same"
+        );
+
         aimToken = IERC20Metadata(aimTokenAddress);
         amdToken = IERC20Metadata(amdTokenAddress);
+        require(
+            amdToken.decimals() >= aimToken.decimals(),
+            "AIM decimals must be greater than or equal to AMD decimals"
+        );
+
+        AIM_DECIMALS_MULTIPLIER = 10 ** (amdToken.decimals() - aimToken.decimals());
+    }
+
+    /// @dev Returns the beneficiary's AIM token balance adjusted by decimals multiplier.
+    function _getAdjustedAimBalance(address beneficiary) private view returns (uint256) {
+        return aimToken.balanceOf(beneficiary) * AIM_DECIMALS_MULTIPLIER;
     }
 
     /// @notice Creates a vesting schedule for an investor.
     /// @dev Only the owner can call this function. The schedule uses predefined constants for investors.
     /// @param beneficiary The address of the investor.
     function createInvestorVesting(address beneficiary) public onlyOwner {
+        uint256 beneficiaryAllocation = _getAdjustedAimBalance(beneficiary);
+        require(
+            cumulativeInvestorVestedAmount + beneficiaryAllocation <=
+                INVESTOR_TOTAL_ALLOCATION,
+            "Investor allocation exceeds total allowed"
+        );
+        cumulativeInvestorVestedAmount += beneficiaryAllocation;
         _createVestingSchedule(
             beneficiary,
             INVESTOR_CLIFF_DAYS,
@@ -112,6 +150,13 @@ contract VestingVault is Ownable, ReentrancyGuard {
     /// @dev Only the owner can call this function. The schedule uses predefined constants for founders.
     /// @param beneficiary The address of the founder.
     function createFounderVesting(address beneficiary) public onlyOwner {
+        uint256 beneficiaryAllocation = _getAdjustedAimBalance(beneficiary);
+        require(
+            cumulativeFounderVestedAmount + beneficiaryAllocation <=
+                FOUNDER_TOTAL_ALLOCATION,
+            "Founder allocation exceeds total allowed"
+        );
+        cumulativeFounderVestedAmount += beneficiaryAllocation;
         _createVestingSchedule(
             beneficiary,
             FOUNDER_CLIFF_DAYS,
@@ -124,6 +169,13 @@ contract VestingVault is Ownable, ReentrancyGuard {
     /// @dev Only the owner can call this function. The schedule uses predefined constants for partners.
     /// @param beneficiary The address of the partner.
     function createPartnerVesting(address beneficiary) public onlyOwner {
+        uint256 beneficiaryAllocation = _getAdjustedAimBalance(beneficiary);
+        require(
+            cumulativePartnerVestedAmount + beneficiaryAllocation <=
+                PARTNER_TOTAL_ALLOCATION,
+            "Partner allocation exceeds total allowed"
+        );
+        cumulativePartnerVestedAmount += beneficiaryAllocation;
         _createVestingSchedule(
             beneficiary,
             PARTNER_CLIFF_DAYS,
@@ -144,14 +196,13 @@ contract VestingVault is Ownable, ReentrancyGuard {
         uint256 installmentCount
     ) internal {
         require(
-            aimToken.balanceOf(beneficiary) > 0,
+            _getAdjustedAimBalance(beneficiary) > 0,
             "Beneficiary has no AIM tokens"
         );
         require(
             vestingSchedules[beneficiary].vestingDuration == 0,
             "Vesting schedule already exists"
         );
-        cumulativeVestedAmount += aimToken.balanceOf(beneficiary);
 
         uint256 cliffDuration = cliffDurationInDays * 86400;
         uint256 vestingDuration = vestingDurationInMonths * 30 days;
@@ -193,15 +244,13 @@ contract VestingVault is Ownable, ReentrancyGuard {
 
         if (totalReleasableAmount > 0) {
             VestingSchedule storage schedule = vestingSchedules[beneficiary];
-            uint256 scaledReleasableAmount = totalReleasableAmount *
-                (10 ** (amdToken.decimals() - aimToken.decimals()));
             schedule.releasedAmount += totalReleasableAmount;
             SafeERC20.safeTransfer(
                 amdToken,
                 beneficiary,
-                scaledReleasableAmount
+                totalReleasableAmount
             );
-            emit TokensReleased(beneficiary, scaledReleasableAmount);
+            emit TokensReleased(beneficiary, totalReleasableAmount);
         }
     }
 
@@ -230,9 +279,9 @@ contract VestingVault is Ownable, ReentrancyGuard {
 
         uint256 installmentDuration = schedule.vestingDuration /
             schedule.installmentCount;
-
+        // For zero-duration vesting (e.g. partner one-time cliff), release full balance
         if (installmentDuration == 0) {
-            return aimToken.balanceOf(beneficiary) - schedule.releasedAmount;
+            return _getAdjustedAimBalance(beneficiary) - schedule.releasedAmount;
         }
 
         uint256 timeSinceVestingStart = block.timestamp -
@@ -246,10 +295,10 @@ contract VestingVault is Ownable, ReentrancyGuard {
 
         uint256 totalVestedAmount;
         if (vestedInstallments == schedule.installmentCount) {
-            totalVestedAmount = aimToken.balanceOf(beneficiary);
+            totalVestedAmount = _getAdjustedAimBalance(beneficiary);
         } else {
-            totalVestedAmount = (aimToken.balanceOf(beneficiary) *
-                vestedInstallments) / schedule.installmentCount;
+            totalVestedAmount = (_getAdjustedAimBalance(beneficiary) * vestedInstallments) /
+                schedule.installmentCount;
         }
 
         return totalVestedAmount - schedule.releasedAmount;
