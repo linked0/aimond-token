@@ -17,12 +17,13 @@ contract EmployeeVestingToken is BaseVestingToken {
         BaseVestingToken("EmployeeVestingToken", "AIME", initialOwner, amdTokenAddress, 5200000000 * (10 ** 18))
     {}
 
-    function createVesting(address beneficiary) public onlyOwner {
+    function createVesting(address beneficiary, uint256 totalAmount) public onlyOwner {
         _createVestingSchedule(
             beneficiary,
             EMPLOYEE_CLIFF_DAYS,
             EMPLOYEE_VESTING_MONTHS,
-            EMPLOYEE_INSTALLMENT_COUNT
+            EMPLOYEE_INSTALLMENT_COUNT,
+            totalAmount
         );
     }
 }

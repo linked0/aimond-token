@@ -17,12 +17,13 @@ contract InvestorVestingToken is BaseVestingToken {
         BaseVestingToken("InvestorVestingToken", "AIMI", initialOwner, amdTokenAddress, 24000000000 * (10 ** 18))
     {}
 
-    function createVesting(address beneficiary) public onlyOwner {
+    function createVesting(address beneficiary, uint256 totalAmount) public onlyOwner {
         _createVestingSchedule(
             beneficiary,
             INVESTOR_CLIFF_DAYS,
             INVESTOR_VESTING_MONTHS,
-            INVESTOR_INSTALLMENT_COUNT
+            INVESTOR_INSTALLMENT_COUNT,
+            totalAmount
         );
     }
 

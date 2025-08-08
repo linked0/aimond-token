@@ -17,12 +17,13 @@ contract FounderVestingToken is BaseVestingToken {
         BaseVestingToken("FounderVestingToken", "AIMF", initialOwner, amdTokenAddress, 20000000000 * (10 ** 18))
     {}
 
-    function createVesting(address beneficiary) public onlyOwner {
+    function createVesting(address beneficiary, uint256 totalAmount) public onlyOwner {
         _createVestingSchedule(
             beneficiary,
             FOUNDER_CLIFF_DAYS,
             FOUNDER_VESTING_MONTHS,
-            FOUNDER_INSTALLMENT_COUNT
+            FOUNDER_INSTALLMENT_COUNT,
+            totalAmount
         );
     }
 }
