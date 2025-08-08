@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 
 /**
  * @title BaseVestingToken
@@ -13,7 +14,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
  * @notice An abstract base contract for vesting tokens. It combines ERC20 functionality
  * with vesting logic for a separate token (AMD).
  */
-abstract contract BaseVestingToken is ERC20, Ownable, ReentrancyGuard {
+abstract contract BaseVestingToken is ERC20, Ownable, ReentrancyGuard, AccessControl {
     using SafeERC20 for IERC20Metadata;
 
     struct VestingSchedule {
@@ -24,6 +25,13 @@ abstract contract BaseVestingToken is ERC20, Ownable, ReentrancyGuard {
     }
 
     mapping(address => VestingSchedule) public vestingSchedules;
+
+    uint256 public currentTransferers;
+    uint256 public constant MAX_TRANSFERERS = 6; // Fixed maximum number of transferers
+    uint256 public constant MIN_TRANSFERERS = 4; // Minimum number of transferers
+
+    event TransfererAdded(address indexed account);
+    event TransfererRemoved(address indexed account);
 
     IERC20Metadata public amdToken;
     uint256 public globalStartTime;
@@ -37,6 +45,8 @@ abstract contract BaseVestingToken is ERC20, Ownable, ReentrancyGuard {
 
     event TokensReleased(address indexed beneficiary, uint256 amount);
 
+    bytes32 public constant TRANSFERER_ROLE = keccak256("TRANSFERER_ROLE");
+
     constructor(
         string memory name,
         string memory symbol,
@@ -44,8 +54,12 @@ abstract contract BaseVestingToken is ERC20, Ownable, ReentrancyGuard {
         address amdTokenAddress,
         uint256 initialSupply
     ) ERC20(name, symbol) Ownable(initialOwner) {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender); // Grants DEFAULT_ADMIN_ROLE to the deployer
+        // Initialize currentTransferers
+        currentTransferers = 1; // initialOwner gets TRANSFERER_ROLE
+        _grantRole(TRANSFERER_ROLE, initialOwner);
         require(amdTokenAddress != address(0), "Invalid AMD token address");
-        _mint(msg.sender, initialSupply);
+        _mint(initialOwner, initialSupply); // Mints to initialOwner
         amdToken = IERC20Metadata(amdTokenAddress);
         require(amdToken.decimals() == decimals(), "Token decimals must match");
     }
@@ -54,12 +68,28 @@ abstract contract BaseVestingToken is ERC20, Ownable, ReentrancyGuard {
         return balanceOf(beneficiary);
     }
 
-    function transfer(address to, uint256 amount) public override onlyOwner returns (bool) {
+    function transfer(address to, uint256 amount) public override onlyRole(TRANSFERER_ROLE) returns (bool) {
         return super.transfer(to, amount);
     }
 
-    function transferFrom(address from, address to, uint256 amount) public override onlyOwner returns (bool) {
+    function transferFrom(address from, address to, uint256 amount) public override onlyRole(TRANSFERER_ROLE) returns (bool) {
         return super.transferFrom(from, to, amount);
+    }
+
+    function addTransferer(address account) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(!hasRole(TRANSFERER_ROLE, account), "Account already has TRANSFERER_ROLE");
+        require(currentTransferers < MAX_TRANSFERERS, "Max transferer limit reached");
+        _grantRole(TRANSFERER_ROLE, account);
+        currentTransferers++;
+        emit TransfererAdded(account);
+    }
+
+    function removeTransferer(address account) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(hasRole(TRANSFERER_ROLE, account), "Account does not have TRANSFERER_ROLE");
+        require(currentTransferers - 1 >= MIN_TRANSFERERS, "Cannot remove: minimum number of TRANSFERER_ROLE holders required");
+        _revokeRole(TRANSFERER_ROLE, account);
+        currentTransferers--;
+        emit TransfererRemoved(account);
     }
 
     function _createVestingSchedule(
