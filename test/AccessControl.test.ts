@@ -2,6 +2,7 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 import { EmployeeVestingToken, AimondToken } from "../typechain-types";
+import { strict as assert } from "assert";
 
 describe("BaseVestingToken AccessControl", function () {
     let BaseVestingToken: EmployeeVestingToken;
@@ -126,12 +127,65 @@ describe("BaseVestingToken AccessControl", function () {
         });
     });
 
+    describe("createVesting", function () {
+        const vestingAmount = ethers.parseEther("1000");
+
+        beforeEach(async function () {
+            // Ensure beneficiary has tokens before creating vesting schedule
+            await BaseVestingToken.connect(owner).transfer(addr1.address, vestingAmount);
+        });
+
+        it("Should allow owner to create a vesting schedule with matching totalAmount", async function () {
+            const tx = await BaseVestingToken.connect(owner).createVesting(addr1.address, vestingAmount);
+            const receipt = await tx.wait();
+            const event = receipt?.logs.find((log: any) => {
+                try {
+                    return BaseVestingToken.interface.parseLog(log)?.name === "VestingScheduleCreated";
+                } catch (e) {
+                    return false;
+                }
+            });
+
+            expect(event).to.not.be.undefined;
+            const parsedEvent = BaseVestingToken.interface.parseLog(event as any);
+
+            console.log("parsedEvent?.args:", parsedEvent?.args);
+
+            assert.strictEqual(parsedEvent?.args[0], addr1.address);
+            assert.strictEqual(parsedEvent?.args[1], BigInt(960 * 86400));
+            assert.strictEqual(parsedEvent?.args[2], BigInt(0));
+            assert.strictEqual(parsedEvent?.args[3], BigInt(1));
+            assert.strictEqual(parsedEvent?.args[4], vestingAmount);
+            const schedule = await BaseVestingToken.vestingSchedules(addr1.address);
+            expect(schedule.totalAmount).to.equal(vestingAmount);
+        });
+
+        it("Should not allow creating a vesting schedule if totalAmount does not match beneficiary's balance", async function () {
+            const mismatchedAmount = ethers.parseEther("900");
+            await expect(BaseVestingToken.connect(owner).createVesting(addr1.address, mismatchedAmount))
+                .to.be.revertedWith("Total amount must match beneficiary's balance");
+        });
+
+        it("Should not allow creating a vesting schedule if beneficiary has no tokens", async function () {
+            await expect(BaseVestingToken.connect(owner).createVesting(addr7.address, ethers.parseEther("100")))
+                .to.be.revertedWith("Total amount must match beneficiary's balance"); // Reverts with this message due to 0 balance
+        });
+
+        it("Should not allow creating a vesting schedule if one already exists", async function () {
+            await BaseVestingToken.connect(owner).createVesting(addr1.address, vestingAmount);
+            
+            await expect(BaseVestingToken.connect(owner).createVesting(addr1.address, vestingAmount))
+                .to.be.reverted;
+        });
+    });
+
     describe("transfer and transferFrom permissions", function () {
         const initialSupply = ethers.parseEther("1000000");
         const transferAmount = ethers.parseEther("100");
 
         beforeEach(async function () {
             // Initial supply is minted to owner in constructor
+            // Ensure addr1 has tokens for transferFrom tests
             await BaseVestingToken.connect(owner).transfer(addr1.address, transferAmount);
         });
 
