@@ -89,11 +89,8 @@ describe("BaseVestingToken AccessControl", function () {
         beforeEach(async function () {
             // Add distributors to reach MIN_DISTRIBUTORS + 1 for testing removal
             // Initial: owner (1)
-            await BaseVestingToken.connect(owner).addDistributor(addr1.address); // 2
-            await BaseVestingToken.connect(owner).addDistributor(addr2.address); // 3
-            await BaseVestingToken.connect(owner).addDistributor(addr3.address); // 4 (MIN_DISTRIBUTORS)
-            await BaseVestingToken.connect(owner).addDistributor(addr4.address); // 5 (MIN_DISTRIBUTORS + 1)
-            // currentDistributors should be 5
+            await BaseVestingToken.connect(owner).addDistributor(addr1.address); // 2 (MIN_DISTRIBUTORS + 1)
+            // currentDistributors should be 2
         });
 
         it("Should allow DEFAULT_ADMIN_ROLE to remove a transferer", async function () {
@@ -102,7 +99,7 @@ describe("BaseVestingToken AccessControl", function () {
                 .to.emit(BaseVestingToken, "DistributorRemoved")
                 .withArgs(addr1.address);
             expect(await BaseVestingToken.hasRole(DISTRIBUTOR_ROLE, addr1.address)).to.be.false;
-            expect(await BaseVestingToken.currentDistributors()).to.equal(4); // Should be MIN_DISTRIBUTORS
+            expect(await BaseVestingToken.currentDistributors()).to.equal(1); // Should be MIN_DISTRIBUTORS
         });
 
         it("Should not allow non-DEFAULT_ADMIN_ROLE to remove a transferer", async function () {
@@ -119,10 +116,10 @@ describe("BaseVestingToken AccessControl", function () {
         });
 
         it("Should not allow going below MIN_DISTRIBUTORS", async function () {
-            // Remove enough distributors to reach MIN_DISTRIBUTORS (4)
-            await BaseVestingToken.connect(owner).removeDistributor(addr1.address); // currentDistributors = 4
-            // Try to remove another one, which would make currentDistributors 3
-            await expect(BaseVestingToken.connect(owner).removeDistributor(addr2.address))
+            // Remove addr1, which makes currentDistributors 1 (MIN_DISTRIBUTORS)
+            await BaseVestingToken.connect(owner).removeDistributor(addr1.address);
+            // Try to remove owner, which would make currentDistributors 0
+            await expect(BaseVestingToken.connect(owner).removeDistributor(owner.address))
                 .to.be.revertedWith("Cannot remove: minimum number of DISTRIBUTOR_ROLE holders required");
         });
     });
