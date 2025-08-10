@@ -35,6 +35,7 @@ abstract contract BaseVestingToken is
     uint256 public currentDistributors;
     uint256 public constant MAX_DISTRIBUTORS = 6; // Fixed maximum number of distributors
     uint256 public constant MIN_DISTRIBUTORS = 1; // Minimum number of distributors
+    uint256 public constant MAX_BATCH = 100; // Maximum beneficiaries per batch release
 
     event DistributorAdded(address indexed account);
     event DistributorRemoved(address indexed account);
@@ -165,6 +166,18 @@ abstract contract BaseVestingToken is
 
     function releaseTo(address beneficiary) public nonReentrant onlyOwner {
         _releaseVestedTokens(beneficiary);
+    }
+
+    function releaseToBatch(
+        address[] calldata beneficiaries
+    ) public nonReentrant onlyOwner {
+        require(
+            beneficiaries.length <= MAX_BATCH,
+            "Batch size exceeds limit"
+        );
+        for (uint256 i = 0; i < beneficiaries.length; i++) {
+            _releaseVestedTokens(beneficiaries[i]);
+        }
     }
 
     function _releaseVestedTokens(address beneficiary) internal {

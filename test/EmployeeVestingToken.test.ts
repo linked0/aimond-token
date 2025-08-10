@@ -148,6 +148,54 @@ describe("EmployeeVestingToken Scenarios", function () {
             expect(await amdToken.balanceOf(beneficiary.address)).to.equal(totalClaimedAmd);
         }
     });
+
+    it("Should release tokens for multiple beneficiaries via batch", async function () {
+        const [owner, beneficiary1, beneficiary2] = await ethers.getSigners();
+        const amdToken = await ethers.deployContract("AimondToken", [owner.address]);
+        const vestingContract = await ethers.deployContract(
+            "EmployeeVestingToken",
+            [owner.address, await amdToken.getAddress()]
+        );
+
+        const scheduleAmount1 = ethers.parseUnits("10000", 18);
+        const scheduleAmount2 = ethers.parseUnits("20000", 18);
+        await vestingContract.connect(owner).transfer(beneficiary1.address, scheduleAmount1);
+        await vestingContract.connect(owner).transfer(beneficiary2.address, scheduleAmount2);
+        const totalAmdForVesting = ethers.parseUnits("100000", 18);
+        await amdToken
+            .connect(owner)
+            .transfer(await vestingContract.getAddress(), totalAmdForVesting);
+
+        const listingTimestamp = await helpers.time.latest();
+        await vestingContract
+            .connect(owner)
+            .createVesting(beneficiary1.address, scheduleAmount1);
+        await vestingContract
+            .connect(owner)
+            .createVesting(beneficiary2.address, scheduleAmount2);
+        await vestingContract.connect(owner).setGlobalStartTime(listingTimestamp);
+
+        const schedule = await vestingContract.vestingSchedules(
+            beneficiary1.address
+        );
+        const globalStartTime = await vestingContract.globalStartTime();
+        const fullVestingEndsTimestamp =
+            Number(globalStartTime) +
+            Number(schedule.cliffDuration) +
+            Number(schedule.vestingDuration);
+
+        await helpers.time.increaseTo(fullVestingEndsTimestamp);
+        await vestingContract
+            .connect(owner)
+            .releaseToBatch([beneficiary1.address, beneficiary2.address]);
+
+        expect(await amdToken.balanceOf(beneficiary1.address)).to.equal(
+            scheduleAmount1
+        );
+        expect(await amdToken.balanceOf(beneficiary2.address)).to.equal(
+            scheduleAmount2
+        );
+    });
 });
 
 import { ethers } from "hardhat";
