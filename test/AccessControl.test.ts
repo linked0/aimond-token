@@ -18,7 +18,7 @@ describe("BaseVestingToken AccessControl", function () {
     let addrs: SignerWithAddress[];
 
     const DEFAULT_ADMIN_ROLE = ethers.ZeroHash;
-    const TRANSFERER_ROLE = ethers.keccak256(ethers.toUtf8Bytes("TRANSFERER_ROLE"));
+    const DISTRIBUTOR_ROLE = ethers.keccak256(ethers.toUtf8Bytes("DISTRIBUTOR_ROLE"));
 
     beforeEach(async function () {
         [owner, addr1, addr2, addr3, addr4, addr5, addr6, addr7, ...addrs] = await ethers.getSigners();
@@ -40,90 +40,90 @@ describe("BaseVestingToken AccessControl", function () {
             expect(await BaseVestingToken.hasRole(DEFAULT_ADMIN_ROLE, owner.address)).to.be.true;
         });
 
-        it("Should grant TRANSFERER_ROLE to the deployer", async function () {
-            expect(await BaseVestingToken.hasRole(TRANSFERER_ROLE, owner.address)).to.be.true;
+        it("Should grant DISTRIBUTOR_ROLE to the deployer", async function () {
+            expect(await BaseVestingToken.hasRole(DISTRIBUTOR_ROLE, owner.address)).to.be.true;
         });
 
-        it("Should initialize currentTransferers to 1", async function () {
-            expect(await BaseVestingToken.currentTransferers()).to.equal(1);
+        it("Should initialize currentDistributors to 1", async function () {
+            expect(await BaseVestingToken.currentDistributors()).to.equal(1);
         });
     });
 
-    describe("addTransferer", function () {
+    describe("addDistributor", function () {
         it("Should allow DEFAULT_ADMIN_ROLE to add a transferer", async function () {
-            await expect(BaseVestingToken.connect(owner).addTransferer(addr1.address))
-                .to.emit(BaseVestingToken, "TransfererAdded")
+            await expect(BaseVestingToken.connect(owner).addDistributor(addr1.address))
+                .to.emit(BaseVestingToken, "DistributorAdded")
                 .withArgs(addr1.address);
-            expect(await BaseVestingToken.hasRole(TRANSFERER_ROLE, addr1.address)).to.be.true;
-            expect(await BaseVestingToken.currentTransferers()).to.equal(2);
+            expect(await BaseVestingToken.hasRole(DISTRIBUTOR_ROLE, addr1.address)).to.be.true;
+            expect(await BaseVestingToken.currentDistributors()).to.equal(2);
         });
 
         it("Should not allow non-DEFAULT_ADMIN_ROLE to add a transferer", async function () {
-            await expect(BaseVestingToken.connect(addr1).addTransferer(addr2.address))
+            await expect(BaseVestingToken.connect(addr1).addDistributor(addr2.address))
                 .to.be.revertedWithCustomError(BaseVestingToken, "AccessControlUnauthorizedAccount")
                 .withArgs(addr1.address, DEFAULT_ADMIN_ROLE);
         });
 
-        it("Should not allow adding an account that already has TRANSFERER_ROLE", async function () {
-            await BaseVestingToken.connect(owner).addTransferer(addr1.address);
-            await expect(BaseVestingToken.connect(owner).addTransferer(addr1.address))
-                .to.be.revertedWith("Account already has TRANSFERER_ROLE");
+        it("Should not allow adding an account that already has DISTRIBUTOR_ROLE", async function () {
+            await BaseVestingToken.connect(owner).addDistributor(addr1.address);
+            await expect(BaseVestingToken.connect(owner).addDistributor(addr1.address))
+                .to.be.revertedWith("Account already has DISTRIBUTOR_ROLE");
         });
 
-        it("Should not allow exceeding MAX_TRANSFERERS", async function () {
-            // Add 5 more transferers to reach MAX_TRANSFERERS (initial owner + 5)
-            await BaseVestingToken.connect(owner).addTransferer(addr1.address);
-            await BaseVestingToken.connect(owner).addTransferer(addr2.address);
-            await BaseVestingToken.connect(owner).addTransferer(addr3.address);
-            await BaseVestingToken.connect(owner).addTransferer(addr4.address);
-            await BaseVestingToken.connect(owner).addTransferer(addr5.address);
+        it("Should not allow exceeding MAX_DISTRIBUTORS", async function () {
+            // Add 5 more distributors to reach MAX_DISTRIBUTORS (initial owner + 5)
+            await BaseVestingToken.connect(owner).addDistributor(addr1.address);
+            await BaseVestingToken.connect(owner).addDistributor(addr2.address);
+            await BaseVestingToken.connect(owner).addDistributor(addr3.address);
+            await BaseVestingToken.connect(owner).addDistributor(addr4.address);
+            await BaseVestingToken.connect(owner).addDistributor(addr5.address);
             
-            expect(await BaseVestingToken.currentTransferers()).to.equal(6); // MAX_TRANSFERERS
+            expect(await BaseVestingToken.currentDistributors()).to.equal(6); // MAX_DISTRIBUTORS
 
-            await expect(BaseVestingToken.connect(owner).addTransferer(addr6.address))
+            await expect(BaseVestingToken.connect(owner).addDistributor(addr6.address))
                 .to.be.revertedWith("Max transferer limit reached");
         });
     });
 
-    describe("removeTransferer", function () {
+    describe("removeDistributor", function () {
         beforeEach(async function () {
-            // Add transferers to reach MIN_TRANSFERERS + 1 for testing removal
+            // Add distributors to reach MIN_DISTRIBUTORS + 1 for testing removal
             // Initial: owner (1)
-            await BaseVestingToken.connect(owner).addTransferer(addr1.address); // 2
-            await BaseVestingToken.connect(owner).addTransferer(addr2.address); // 3
-            await BaseVestingToken.connect(owner).addTransferer(addr3.address); // 4 (MIN_TRANSFERERS)
-            await BaseVestingToken.connect(owner).addTransferer(addr4.address); // 5 (MIN_TRANSFERERS + 1)
-            // currentTransferers should be 5
+            await BaseVestingToken.connect(owner).addDistributor(addr1.address); // 2
+            await BaseVestingToken.connect(owner).addDistributor(addr2.address); // 3
+            await BaseVestingToken.connect(owner).addDistributor(addr3.address); // 4 (MIN_DISTRIBUTORS)
+            await BaseVestingToken.connect(owner).addDistributor(addr4.address); // 5 (MIN_DISTRIBUTORS + 1)
+            // currentDistributors should be 5
         });
 
         it("Should allow DEFAULT_ADMIN_ROLE to remove a transferer", async function () {
-            expect(await BaseVestingToken.hasRole(TRANSFERER_ROLE, addr1.address)).to.be.true;
-            await expect(BaseVestingToken.connect(owner).removeTransferer(addr1.address))
-                .to.emit(BaseVestingToken, "TransfererRemoved")
+            expect(await BaseVestingToken.hasRole(DISTRIBUTOR_ROLE, addr1.address)).to.be.true;
+            await expect(BaseVestingToken.connect(owner).removeDistributor(addr1.address))
+                .to.emit(BaseVestingToken, "DistributorRemoved")
                 .withArgs(addr1.address);
-            expect(await BaseVestingToken.hasRole(TRANSFERER_ROLE, addr1.address)).to.be.false;
-            expect(await BaseVestingToken.currentTransferers()).to.equal(4); // Should be MIN_TRANSFERERS
+            expect(await BaseVestingToken.hasRole(DISTRIBUTOR_ROLE, addr1.address)).to.be.false;
+            expect(await BaseVestingToken.currentDistributors()).to.equal(4); // Should be MIN_DISTRIBUTORS
         });
 
         it("Should not allow non-DEFAULT_ADMIN_ROLE to remove a transferer", async function () {
-            await expect(BaseVestingToken.connect(addr1).removeTransferer(addr2.address))
+            await expect(BaseVestingToken.connect(addr1).removeDistributor(addr2.address))
                 .to.be.revertedWithCustomError(BaseVestingToken, "AccessControlUnauthorizedAccount")
                 .withArgs(addr1.address, DEFAULT_ADMIN_ROLE);
         });
 
-        it("Should not allow removing an account that does not have TRANSFERER_ROLE", async function () {
+        it("Should not allow removing an account that does not have DISTRIBUTOR_ROLE", async function () {
             // addr7 is not added as a transferer in beforeEach
-            expect(await BaseVestingToken.hasRole(TRANSFERER_ROLE, addr7.address)).to.be.false;
-            await expect(BaseVestingToken.connect(owner).removeTransferer(addr7.address))
-                .to.be.revertedWith("Account does not have TRANSFERER_ROLE");
+            expect(await BaseVestingToken.hasRole(DISTRIBUTOR_ROLE, addr7.address)).to.be.false;
+            await expect(BaseVestingToken.connect(owner).removeDistributor(addr7.address))
+                .to.be.revertedWith("Account does not have DISTRIBUTOR_ROLE");
         });
 
-        it("Should not allow going below MIN_TRANSFERERS", async function () {
-            // Remove enough transferers to reach MIN_TRANSFERERS (4)
-            await BaseVestingToken.connect(owner).removeTransferer(addr1.address); // currentTransferers = 4
-            // Try to remove another one, which would make currentTransferers 3
-            await expect(BaseVestingToken.connect(owner).removeTransferer(addr2.address))
-                .to.be.revertedWith("Cannot remove: minimum number of TRANSFERER_ROLE holders required");
+        it("Should not allow going below MIN_DISTRIBUTORS", async function () {
+            // Remove enough distributors to reach MIN_DISTRIBUTORS (4)
+            await BaseVestingToken.connect(owner).removeDistributor(addr1.address); // currentDistributors = 4
+            // Try to remove another one, which would make currentDistributors 3
+            await expect(BaseVestingToken.connect(owner).removeDistributor(addr2.address))
+                .to.be.revertedWith("Cannot remove: minimum number of DISTRIBUTOR_ROLE holders required");
         });
     });
 
@@ -189,35 +189,35 @@ describe("BaseVestingToken AccessControl", function () {
             await BaseVestingToken.connect(owner).transfer(addr1.address, transferAmount);
         });
 
-        it("Should allow TRANSFERER_ROLE to call transfer", async function () {
-            // owner has TRANSFERER_ROLE by default
+        it("Should allow DISTRIBUTOR_ROLE to call transfer", async function () {
+            // owner has DISTRIBUTOR_ROLE by default
             await expect(BaseVestingToken.connect(owner).transfer(addr2.address, transferAmount))
                 .to.changeTokenBalance(BaseVestingToken, addr2, transferAmount);
         });
 
-        it("Should not allow non-TRANSFERER_ROLE to call transfer", async function () {
-            // addr7 does not have TRANSFERER_ROLE
+        it("Should not allow non-DISTRIBUTOR_ROLE to call transfer", async function () {
+            // addr7 does not have DISTRIBUTOR_ROLE
             await expect(BaseVestingToken.connect(addr7).transfer(addr2.address, transferAmount))
                 .to.be.revertedWithCustomError(BaseVestingToken, "AccessControlUnauthorizedAccount")
-                .withArgs(addr7.address, TRANSFERER_ROLE);
+                .withArgs(addr7.address, DISTRIBUTOR_ROLE);
         });
 
-        it("Should allow TRANSFERER_ROLE to call transferFrom", async function () {
+        it("Should allow DISTRIBUTOR_ROLE to call transferFrom", async function () {
             // Approve owner to spend addr1's tokens
             await BaseVestingToken.connect(addr1).approve(owner.address, transferAmount);
             console.log("Allowance after approve:", await BaseVestingToken.allowance(addr1.address, owner.address));
-            // owner has TRANSFERER_ROLE by default
+            // owner has DISTRIBUTOR_ROLE by default
             await expect(BaseVestingToken.connect(owner).transferFrom(addr1.address, addr2.address, transferAmount))
                 .to.changeTokenBalances(BaseVestingToken, [addr1, addr2], [-transferAmount, transferAmount]);
         });
 
-        it("Should not allow non-TRANSFERER_ROLE to call transferFrom", async function () {
+        it("Should not allow non-DISTRIBUTOR_ROLE to call transferFrom", async function () {
             // Approve owner to spend addr1's tokens
             await BaseVestingToken.connect(addr1).approve(owner.address, transferAmount);
-            // addr7 does not have TRANSFERER_ROLE
+            // addr7 does not have DISTRIBUTOR_ROLE
             await expect(BaseVestingToken.connect(addr7).transferFrom(addr1.address, addr2.address, transferAmount))
                 .to.be.revertedWithCustomError(BaseVestingToken, "AccessControlUnauthorizedAccount")
-                .withArgs(addr7.address, TRANSFERER_ROLE);
+                .withArgs(addr7.address, DISTRIBUTOR_ROLE);
         });
     });
 });

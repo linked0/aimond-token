@@ -32,12 +32,12 @@ abstract contract BaseVestingToken is
 
     mapping(address => VestingSchedule) public vestingSchedules;
 
-    uint256 public currentTransferers;
-    uint256 public constant MAX_TRANSFERERS = 6; // Fixed maximum number of transferers
-    uint256 public constant MIN_TRANSFERERS = 4; // Minimum number of transferers
+    uint256 public currentDistributors;
+    uint256 public constant MAX_DISTRIBUTORS = 6; // Fixed maximum number of distributors
+    uint256 public constant MIN_DISTRIBUTORS = 4; // Minimum number of distributors
 
-    event TransfererAdded(address indexed account);
-    event TransfererRemoved(address indexed account);
+    event DistributorAdded(address indexed account);
+    event DistributorRemoved(address indexed account);
 
     IERC20Metadata public amdToken;
     uint256 public globalStartTime;
@@ -52,7 +52,7 @@ abstract contract BaseVestingToken is
 
     event TokensReleased(address indexed beneficiary, uint256 amount);
 
-    bytes32 public constant TRANSFERER_ROLE = keccak256("TRANSFERER_ROLE");
+    bytes32 public constant DISTRIBUTOR_ROLE = keccak256("DISTRIBUTOR_ROLE");
 
     constructor(
         string memory name,
@@ -62,9 +62,9 @@ abstract contract BaseVestingToken is
         uint256 initialSupply
     ) ERC20(name, symbol) Ownable(initialOwner) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender); // Grants DEFAULT_ADMIN_ROLE to the deployer
-        // Initialize currentTransferers
-        currentTransferers = 1; // initialOwner gets TRANSFERER_ROLE
-        _grantRole(TRANSFERER_ROLE, initialOwner);
+        // Initialize currentDistributors
+        currentDistributors = 1; // initialOwner gets DISTRIBUTOR_ROLE
+        _grantRole(DISTRIBUTOR_ROLE, initialOwner);
         require(amdTokenAddress != address(0), "Invalid AMD token address");
         _mint(initialOwner, initialSupply); // Mints to initialOwner
         amdToken = IERC20Metadata(amdTokenAddress);
@@ -80,7 +80,7 @@ abstract contract BaseVestingToken is
     function transfer(
         address to,
         uint256 amount
-    ) public override onlyRole(TRANSFERER_ROLE) returns (bool) {
+    ) public override onlyRole(DISTRIBUTOR_ROLE) returns (bool) {
         return super.transfer(to, amount);
     }
 
@@ -88,40 +88,40 @@ abstract contract BaseVestingToken is
         address from,
         address to,
         uint256 amount
-    ) public override onlyRole(TRANSFERER_ROLE) returns (bool) {
+    ) public override onlyRole(DISTRIBUTOR_ROLE) returns (bool) {
         return super.transferFrom(from, to, amount);
     }
 
-    function addTransferer(
+    function addDistributor(
         address account
     ) public onlyRole(DEFAULT_ADMIN_ROLE) {
         require(
-            !hasRole(TRANSFERER_ROLE, account),
-            "Account already has TRANSFERER_ROLE"
+            !hasRole(DISTRIBUTOR_ROLE, account),
+            "Account already has DISTRIBUTOR_ROLE"
         );
         require(
-            currentTransferers < MAX_TRANSFERERS,
+            currentDistributors < MAX_DISTRIBUTORS,
             "Max transferer limit reached"
         );
-        _grantRole(TRANSFERER_ROLE, account);
-        currentTransferers++;
-        emit TransfererAdded(account);
+        _grantRole(DISTRIBUTOR_ROLE, account);
+        currentDistributors++;
+        emit DistributorAdded(account);
     }
 
-    function removeTransferer(
+    function removeDistributor(
         address account
     ) public onlyRole(DEFAULT_ADMIN_ROLE) {
         require(
-            hasRole(TRANSFERER_ROLE, account),
-            "Account does not have TRANSFERER_ROLE"
+            hasRole(DISTRIBUTOR_ROLE, account),
+            "Account does not have DISTRIBUTOR_ROLE"
         );
         require(
-            currentTransferers - 1 >= MIN_TRANSFERERS,
-            "Cannot remove: minimum number of TRANSFERER_ROLE holders required"
+            currentDistributors - 1 >= MIN_DISTRIBUTORS,
+            "Cannot remove: minimum number of DISTRIBUTOR_ROLE holders required"
         );
-        _revokeRole(TRANSFERER_ROLE, account);
-        currentTransferers--;
-        emit TransfererRemoved(account);
+        _revokeRole(DISTRIBUTOR_ROLE, account);
+        currentDistributors--;
+        emit DistributorRemoved(account);
     }
 
     function _createVestingSchedule(
