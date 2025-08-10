@@ -137,6 +137,10 @@ abstract contract BaseVestingToken is
             "Vesting schedule already exists"
         );
         require(
+            installmentCount > 0,
+            "Installment count must be > 0"
+        );
+        require(
             _totalAmount == balanceOf(beneficiary),
             "Total amount must match beneficiary's balance"
         );
