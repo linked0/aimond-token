@@ -34,7 +34,7 @@ abstract contract BaseVestingToken is
 
     uint256 public currentDistributors;
     uint256 public constant MAX_DISTRIBUTORS = 6; // Fixed maximum number of distributors
-    uint256 public constant MIN_DISTRIBUTORS = 4; // Minimum number of distributors
+    uint256 public constant MIN_DISTRIBUTORS = 1; // Minimum number of distributors
 
     event DistributorAdded(address indexed account);
     event DistributorRemoved(address indexed account);
