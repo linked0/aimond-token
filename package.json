@@ -8,6 +8,7 @@
     "test:inv": "hardhat test test/InvestorVesting.test.ts",
     "test:fnd": "hardhat test test/FounderVesting.test.ts",
     "test:emp": "hardhat test test/EmployeeVesting.test.ts",
+    "test:mock": "hardhat test test/MockVestingToken.test.ts",
     "build": "hardhat compile",
     "localnode": "NODE_OPTIONS='--max-old-space-size=8192' yarn hardhat node --port 8545",
     "deploy:aimond:localnet": "hardhat run scripts/deploy-aimond-token.ts --network localnet",
@@ -22,6 +23,7 @@
     "deploy:employee:testnet": "hardhat run scripts/deploy-employee-vesting-token.ts --network bscTestnet",
     "deploy:founder:testnet": "hardhat run scripts/deploy-founder-vesting-token.ts --network bscTestnet",
     "deploy:investor:testnet": "hardhat run scripts/deploy-investor-vesting-token.ts --network bscTestnet",
+    "deploy:mock:testnet": "hardhat run scripts/mocks/deploy-mock-vesting-token.ts --network bscTestnet",
     "deploy:all:testnet": "hardhat run scripts/deploy-all.ts --network bscTestnet",
     "deploy:testnet": "hardhat run scripts/deploy.ts --network bscTestnet"
   },
