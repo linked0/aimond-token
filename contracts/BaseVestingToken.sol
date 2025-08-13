@@ -32,8 +32,7 @@ abstract contract BaseVestingToken is
 
     mapping(address => VestingSchedule) public vestingSchedules;
 
-    uint256 public constant MAX_DISTRIBUTORS = 6; // Fixed maximum number of distributors
-    uint256 public constant MIN_DISTRIBUTORS = 1; // Minimum number of distributors
+    
     uint256 public constant MAX_BATCH = 100; // Maximum beneficiaries per batch release
 
     event DistributorAdded(address indexed account);
@@ -101,10 +100,7 @@ abstract contract BaseVestingToken is
             !hasRole(DISTRIBUTOR_ROLE, account),
             "Account already has DISTRIBUTOR_ROLE"
         );
-        require(
-            getRoleMemberCount(DISTRIBUTOR_ROLE) < MAX_DISTRIBUTORS,
-            "Max transferer limit reached"
-        );
+        
         _grantRole(DISTRIBUTOR_ROLE, account);
         emit DistributorAdded(account);
     }
@@ -116,10 +112,7 @@ abstract contract BaseVestingToken is
             hasRole(DISTRIBUTOR_ROLE, account),
             "Account does not have DISTRIBUTOR_ROLE"
         );
-        require(
-            getRoleMemberCount(DISTRIBUTOR_ROLE) - 1 >= MIN_DISTRIBUTORS,
-            "Cannot remove: minimum number of DISTRIBUTOR_ROLE holders required"
-        );
+        
         _revokeRole(DISTRIBUTOR_ROLE, account);
         emit DistributorRemoved(account);
     }
