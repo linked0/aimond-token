@@ -8,6 +8,7 @@ async function main() {
 
   // Deploy AimondToken
   const aimondToken = await ethers.deployContract("AimondToken", [deployer.address]);
+  await aimondToken.waitForDeployment();
   console.log("AimondToken deployed to:", aimondToken.target);
 
   // Deploy Airdrop
@@ -17,6 +18,7 @@ async function main() {
     deployer.address,
     totalAirdropAllocation
   ]);
+  await airdrop.waitForDeployment();
   console.log("Airdrop deployed to:", airdrop.target);
 
   // Deploy EmployeeVestingToken
@@ -24,6 +26,7 @@ async function main() {
     deployer.address,
     aimondToken.target
   ]);
+  await employeeVestingToken.waitForDeployment();
   console.log("EmployeeVestingToken deployed to:", employeeVestingToken.target);
 
   // Deploy FounderVestingToken
@@ -31,6 +34,7 @@ async function main() {
     deployer.address,
     aimondToken.target
   ]);
+  await founderVestingToken.waitForDeployment();
   console.log("FounderVestingToken deployed to:", founderVestingToken.target);
 
   // Deploy InvestorVestingToken
@@ -38,6 +42,7 @@ async function main() {
     deployer.address,
     aimondToken.target
   ]);
+  await investorVestingToken.waitForDeployment();
   console.log("InvestorVestingToken deployed to:", investorVestingToken.target);
 
 }
