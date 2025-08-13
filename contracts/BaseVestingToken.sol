@@ -25,6 +25,7 @@ abstract contract BaseVestingToken is
     struct VestingSchedule {
         uint256 totalAmount;
         uint256 cliffDuration;
+        // vestingDuration is the release period after the cliff, not including cliffDuration
         uint256 vestingDuration;
         uint256 installmentCount;
         uint256 releasedAmount;
