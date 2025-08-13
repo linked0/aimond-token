@@ -50,6 +50,7 @@ abstract contract BaseVestingToken is
     );
 
     event TokensReleased(address indexed beneficiary, uint256 amount);
+    event GlobalStartTimeSet(uint256 startTime);
 
     bytes32 public constant DISTRIBUTOR_ROLE = keccak256("DISTRIBUTOR_ROLE");
 
@@ -186,7 +187,9 @@ abstract contract BaseVestingToken is
 
     function setGlobalStartTime(uint256 newStartTime) public onlyOwner {
         require(globalStartTime == 0, "Global start time already set");
+        require(newStartTime > 0, "Invalid start time");
         globalStartTime = (newStartTime / 86400) * 86400; // Floor to the nearest day
+        emit GlobalStartTimeSet(globalStartTime);
     }
 
     function getCurrentlyReleasableAmount(
