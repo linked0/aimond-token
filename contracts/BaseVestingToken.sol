@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/access/extensions/AccessControlEnumerable.sol";
 
 /**
  * @title BaseVestingToken
@@ -18,7 +18,7 @@ abstract contract BaseVestingToken is
     ERC20,
     Ownable,
     ReentrancyGuard,
-    AccessControl
+    AccessControlEnumerable
 {
     using SafeERC20 for IERC20Metadata;
 
@@ -32,7 +32,6 @@ abstract contract BaseVestingToken is
 
     mapping(address => VestingSchedule) public vestingSchedules;
 
-    uint256 public currentDistributors;
     uint256 public constant MAX_DISTRIBUTORS = 6; // Fixed maximum number of distributors
     uint256 public constant MIN_DISTRIBUTORS = 1; // Minimum number of distributors
     uint256 public constant MAX_BATCH = 100; // Maximum beneficiaries per batch release
@@ -65,8 +64,7 @@ abstract contract BaseVestingToken is
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender); // Grants DEFAULT_ADMIN_ROLE to the deployer
         _grantRole(DEFAULT_ADMIN_ROLE, initialOwner); // Also allow the owner to administer roles
 
-        // Initialize currentDistributors
-        currentDistributors = 1; // initialOwner gets DISTRIBUTOR_ROLE
+        // Grant DISTRIBUTOR_ROLE to the initialOwner
         _grantRole(DISTRIBUTOR_ROLE, initialOwner);
 
         require(amdTokenAddress != address(0), "Invalid AMD token address");
@@ -84,7 +82,7 @@ abstract contract BaseVestingToken is
     function transfer(
         address to,
         uint256 amount
-    ) public override onlyRole(DISTRIBUTOR_ROLE) returns (bool) {
+    ) public virtual override onlyRole(DISTRIBUTOR_ROLE) returns (bool) {
         return super.transfer(to, amount);
     }
 
@@ -92,7 +90,7 @@ abstract contract BaseVestingToken is
         address from,
         address to,
         uint256 amount
-    ) public override onlyRole(DISTRIBUTOR_ROLE) returns (bool) {
+    ) public virtual override onlyRole(DISTRIBUTOR_ROLE) returns (bool) {
         return super.transferFrom(from, to, amount);
     }
 
@@ -104,11 +102,10 @@ abstract contract BaseVestingToken is
             "Account already has DISTRIBUTOR_ROLE"
         );
         require(
-            currentDistributors < MAX_DISTRIBUTORS,
+            getRoleMemberCount(DISTRIBUTOR_ROLE) < MAX_DISTRIBUTORS,
             "Max transferer limit reached"
         );
         _grantRole(DISTRIBUTOR_ROLE, account);
-        currentDistributors++;
         emit DistributorAdded(account);
     }
 
@@ -120,11 +117,10 @@ abstract contract BaseVestingToken is
             "Account does not have DISTRIBUTOR_ROLE"
         );
         require(
-            currentDistributors - 1 >= MIN_DISTRIBUTORS,
+            getRoleMemberCount(DISTRIBUTOR_ROLE) - 1 >= MIN_DISTRIBUTORS,
             "Cannot remove: minimum number of DISTRIBUTOR_ROLE holders required"
         );
         _revokeRole(DISTRIBUTOR_ROLE, account);
-        currentDistributors--;
         emit DistributorRemoved(account);
     }
 
