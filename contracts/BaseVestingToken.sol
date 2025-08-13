@@ -63,9 +63,12 @@ abstract contract BaseVestingToken is
         uint256 initialSupply
     ) ERC20(name, symbol) Ownable(initialOwner) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender); // Grants DEFAULT_ADMIN_ROLE to the deployer
+        _grantRole(DEFAULT_ADMIN_ROLE, initialOwner); // Also allow the owner to administer roles
+
         // Initialize currentDistributors
         currentDistributors = 1; // initialOwner gets DISTRIBUTOR_ROLE
         _grantRole(DISTRIBUTOR_ROLE, initialOwner);
+
         require(amdTokenAddress != address(0), "Invalid AMD token address");
         _mint(initialOwner, initialSupply); // Mints to initialOwner
         amdToken = IERC20Metadata(amdTokenAddress);
@@ -136,10 +139,7 @@ abstract contract BaseVestingToken is
             vestingSchedules[beneficiary].totalAmount == 0,
             "Vesting schedule already exists"
         );
-        require(
-            installmentCount > 0,
-            "Installment count must be > 0"
-        );
+        require(installmentCount > 0, "Installment count must be > 0");
         require(
             _totalAmount == balanceOf(beneficiary),
             "Total amount must match beneficiary's balance"
@@ -175,10 +175,7 @@ abstract contract BaseVestingToken is
     function releaseToBatch(
         address[] calldata beneficiaries
     ) public nonReentrant onlyOwner {
-        require(
-            beneficiaries.length <= MAX_BATCH,
-            "Batch size exceeds limit"
-        );
+        require(beneficiaries.length <= MAX_BATCH, "Batch size exceeds limit");
         for (uint256 i = 0; i < beneficiaries.length; i++) {
             _releaseVestedTokens(beneficiaries[i]);
         }
