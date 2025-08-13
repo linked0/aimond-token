@@ -10,7 +10,7 @@ import "./BaseVestingToken.sol";
  */
 contract FounderVestingToken is BaseVestingToken {
     uint256 private constant FOUNDER_CLIFF_DAYS = 660;
-    uint256 private constant FOUNDER_VESTING_MONTHS = 10;
+    uint256 private constant FOUNDER_VESTING_DAYS = 300;
     uint256 private constant FOUNDER_INSTALLMENT_COUNT = 10;
 
     constructor(address initialOwner, address amdTokenAddress)
@@ -21,7 +21,7 @@ contract FounderVestingToken is BaseVestingToken {
         _createVestingSchedule(
             beneficiary,
             FOUNDER_CLIFF_DAYS,
-            FOUNDER_VESTING_MONTHS,
+            FOUNDER_VESTING_DAYS,
             FOUNDER_INSTALLMENT_COUNT,
             totalAmount
         );

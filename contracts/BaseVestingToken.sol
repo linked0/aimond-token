@@ -120,7 +120,7 @@ abstract contract BaseVestingToken is
     function _createVestingSchedule(
         address beneficiary,
         uint256 cliffDurationInDays,
-        uint256 vestingDurationInMonths,
+        uint256 vestingDurationInDays,
         uint256 installmentCount,
         uint256 _totalAmount
     ) internal {
@@ -135,7 +135,7 @@ abstract contract BaseVestingToken is
         );
 
         uint256 cliffDuration = cliffDurationInDays * 86400;
-        uint256 vestingDuration = vestingDurationInMonths * 30 days;
+        uint256 vestingDuration = vestingDurationInDays * 86400;
 
         vestingSchedules[beneficiary] = VestingSchedule({
             totalAmount: _totalAmount,
