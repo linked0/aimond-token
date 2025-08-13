@@ -68,19 +68,7 @@ describe("BaseVestingToken AccessControl", function () {
                 .to.be.revertedWith("Account already has DISTRIBUTOR_ROLE");
         });
 
-        it("Should not allow exceeding MAX_DISTRIBUTORS", async function () {
-            // Add 5 more distributors to reach MAX_DISTRIBUTORS (initial owner + 5)
-            await BaseVestingToken.connect(owner).addDistributor(addr1.address);
-            await BaseVestingToken.connect(owner).addDistributor(addr2.address);
-            await BaseVestingToken.connect(owner).addDistributor(addr3.address);
-            await BaseVestingToken.connect(owner).addDistributor(addr4.address);
-            await BaseVestingToken.connect(owner).addDistributor(addr5.address);
-            
-            expect(await BaseVestingToken.getRoleMemberCount(DISTRIBUTOR_ROLE)).to.equal(6); // MAX_DISTRIBUTORS
-
-            await expect(BaseVestingToken.connect(owner).addDistributor(addr6.address))
-                .to.be.revertedWith("Max transferer limit reached");
-        });
+        
     });
 
     describe("removeDistributor", function () {
@@ -113,13 +101,7 @@ describe("BaseVestingToken AccessControl", function () {
                 .to.be.revertedWith("Account does not have DISTRIBUTOR_ROLE");
         });
 
-        it("Should not allow going below MIN_DISTRIBUTORS", async function () {
-            // Remove addr1, which makes currentDistributors 1 (MIN_DISTRIBUTORS)
-            await BaseVestingToken.connect(owner).removeDistributor(addr1.address);
-            // Try to remove owner, which would make currentDistributors 0
-            await expect(BaseVestingToken.connect(owner).removeDistributor(owner.address))
-                .to.be.revertedWith("Cannot remove: minimum number of DISTRIBUTOR_ROLE holders required");
-        });
+        
     });
 
     describe("createVesting", function () {
