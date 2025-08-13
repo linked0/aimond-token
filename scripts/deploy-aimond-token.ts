@@ -7,6 +7,7 @@ async function main() {
   console.log("Deploying AimondToken with the account:", deployer.address);
 
   const aimondToken = await ethers.deployContract("AimondToken", [deployer.address]);
+  await aimondToken.waitForDeployment();
 
   console.log("AimondToken deployed to:", aimondToken.target);
 }

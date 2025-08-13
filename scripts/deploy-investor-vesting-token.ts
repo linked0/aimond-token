@@ -1,5 +1,6 @@
 
 import { ethers } from "hardhat";
+import { isAddress } from "ethers";
 import "dotenv/config";
 
 async function main() {
@@ -7,15 +8,20 @@ async function main() {
 
   console.log("Deploying contracts with the account:", deployer.address);
 
-  if (!process.env.AIMOND_ADDRESS) {
+  const aimondAddress = process.env.AIMOND_ADDRESS;
+  if (!aimondAddress) {
     throw new Error("AIMOND_ADDRESS is not set in .env file");
+  }
+  if (!isAddress(aimondAddress)) {
+    throw new Error(`AIMOND_ADDRESS is invalid: ${aimondAddress}`);
   }
 
   // Deploy InvestorVestingToken
   const investorVestingToken = await ethers.deployContract("InvestorVestingToken", [
     deployer.address,
-    process.env.AIMOND_ADDRESS
+    aimondAddress
   ]);
+  await investorVestingToken.waitForDeployment();
 
   console.log("InvestorVestingToken deployed to:", investorVestingToken.target);
 }
