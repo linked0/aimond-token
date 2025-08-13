@@ -32,7 +32,6 @@ abstract contract BaseVestingToken is
 
     mapping(address => VestingSchedule) public vestingSchedules;
 
-    
     uint256 public constant MAX_BATCH = 100; // Maximum beneficiaries per batch release
 
     event DistributorAdded(address indexed account);
@@ -101,7 +100,7 @@ abstract contract BaseVestingToken is
             !hasRole(DISTRIBUTOR_ROLE, account),
             "Account already has DISTRIBUTOR_ROLE"
         );
-        
+
         _grantRole(DISTRIBUTOR_ROLE, account);
         emit DistributorAdded(account);
     }
@@ -113,7 +112,7 @@ abstract contract BaseVestingToken is
             hasRole(DISTRIBUTOR_ROLE, account),
             "Account does not have DISTRIBUTOR_ROLE"
         );
-        
+
         _revokeRole(DISTRIBUTOR_ROLE, account);
         emit DistributorRemoved(account);
     }
@@ -203,12 +202,20 @@ abstract contract BaseVestingToken is
             return 0;
         }
 
-        uint256 installmentDuration = schedule.vestingDuration /
-            schedule.installmentCount;
-        if (installmentDuration == 0) {
-            // For one-time cliff vesting
+        // No schedule -> nothing releasable
+        if (schedule.totalAmount == 0) {
+            return 0;
+        }
+        // Explicitly handle single-installment schedules (one-time release after cliff)
+        if (schedule.installmentCount == 1) {
             return schedule.totalAmount - schedule.releasedAmount;
         }
+        uint256 installmentDuration = schedule.vestingDuration /
+            schedule.installmentCount;
+        require(
+            installmentDuration > 0,
+            "installmentCount too large for vestingDuration"
+        );
 
         uint256 timeSinceVestingStart = block.timestamp -
             (globalStartTime + schedule.cliffDuration);
