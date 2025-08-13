@@ -44,9 +44,7 @@ describe("BaseVestingToken AccessControl", function () {
             expect(await BaseVestingToken.hasRole(DISTRIBUTOR_ROLE, owner.address)).to.be.true;
         });
 
-        it("Should initialize currentDistributors to 1", async function () {
-            expect(await BaseVestingToken.currentDistributors()).to.equal(1);
-        });
+        
     });
 
     describe("addDistributor", function () {
@@ -55,7 +53,7 @@ describe("BaseVestingToken AccessControl", function () {
                 .to.emit(BaseVestingToken, "DistributorAdded")
                 .withArgs(addr1.address);
             expect(await BaseVestingToken.hasRole(DISTRIBUTOR_ROLE, addr1.address)).to.be.true;
-            expect(await BaseVestingToken.currentDistributors()).to.equal(2);
+            expect(await BaseVestingToken.getRoleMemberCount(DISTRIBUTOR_ROLE)).to.equal(2);
         });
 
         it("Should not allow non-DEFAULT_ADMIN_ROLE to add a transferer", async function () {
@@ -78,7 +76,7 @@ describe("BaseVestingToken AccessControl", function () {
             await BaseVestingToken.connect(owner).addDistributor(addr4.address);
             await BaseVestingToken.connect(owner).addDistributor(addr5.address);
             
-            expect(await BaseVestingToken.currentDistributors()).to.equal(6); // MAX_DISTRIBUTORS
+            expect(await BaseVestingToken.getRoleMemberCount(DISTRIBUTOR_ROLE)).to.equal(6); // MAX_DISTRIBUTORS
 
             await expect(BaseVestingToken.connect(owner).addDistributor(addr6.address))
                 .to.be.revertedWith("Max transferer limit reached");
@@ -99,7 +97,7 @@ describe("BaseVestingToken AccessControl", function () {
                 .to.emit(BaseVestingToken, "DistributorRemoved")
                 .withArgs(addr1.address);
             expect(await BaseVestingToken.hasRole(DISTRIBUTOR_ROLE, addr1.address)).to.be.false;
-            expect(await BaseVestingToken.currentDistributors()).to.equal(1); // Should be MIN_DISTRIBUTORS
+            expect(await BaseVestingToken.getRoleMemberCount(DISTRIBUTOR_ROLE)).to.equal(1); // Should be MIN_DISTRIBUTORS
         });
 
         it("Should not allow non-DEFAULT_ADMIN_ROLE to remove a transferer", async function () {
