@@ -91,7 +91,7 @@ describe("MockVestingToken Scenarios", function () {
 
         const schedule = await vestingContract.vestingSchedules(beneficiary.address);
         const globalStartTime = await vestingContract.globalStartTime();
-        const vestingEndsTimestamp = Number(globalStartTime) + Number(schedule.vestingDuration);
+        const vestingEndsTimestamp = Number(globalStartTime) + Number(schedule.cliffDuration) + Number(schedule.vestingDuration);
 
         await helpers.time.increaseTo(vestingEndsTimestamp);
 
