@@ -11,15 +11,7 @@ async function main() {
   await aimondToken.waitForDeployment();
   console.log("AimondToken deployed to:", aimondToken.target);
 
-  // Deploy Airdrop
-  const totalAirdropAllocation = ethers.parseEther("1000000"); // 1 million tokens
-  const airdrop = await ethers.deployContract("Airdrop", [
-    aimondToken.target,
-    deployer.address,
-    totalAirdropAllocation
-  ]);
-  await airdrop.waitForDeployment();
-  console.log("Airdrop deployed to:", airdrop.target);
+  
 
   // Deploy EmployeeVestingToken
   const employeeVestingToken = await ethers.deployContract("EmployeeVestingToken", [

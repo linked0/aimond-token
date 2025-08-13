@@ -39,7 +39,7 @@ Tracks each Merkle root that has been generated and committed to a specific smar
 | `id`                | `BIGINT`       | Primary Key, Auto-incrementing                                           |
 | `root_hash`         | `VARCHAR(66)`  | The actual Merkle root hash (e.g., `0x...`)                              | **Unique, Indexed.** This is what goes on-chain. |
 | `contract_address`  | `VARCHAR(42)`  | The address of the smart contract where this root was committed          | e.g., `NewMemberToken` or `PaidPoint` contract |
-| `distribution_type` | `VARCHAR(50)`  | Categorizes the type of distribution (e.g., 'new_member_token', 'paid_point', 'marketing_airdrop') | **Unique constraint with `root_hash`**. Useful for managing multiple programs. |
+| `distribution_type` | `VARCHAR(50)`  | Categorizes the type of distribution (e.g., 'new_member_token', 'paid_point') | **Unique constraint with `root_hash`**. Useful for managing multiple programs. |
 | `period_start_date` | `TIMESTAMP`    | The start date of the period for which this root's data was collected    |                                           |
 | `period_end_date`   | `TIMESTAMP`    | The end date of the period for which this root's data was collected      |                                           |
 | `is_active`         | `BOOLEAN`      | Flag indicating if this is the currently active root for claiming        | Only one `is_active` per `distribution_type` should be true at a time. |
