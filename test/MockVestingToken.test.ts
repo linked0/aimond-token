@@ -70,10 +70,10 @@ describe("MockVestingToken Scenarios", function () {
         const cliffDuration = Number(schedule.cliffDuration);
         const vestingDuration = Number(schedule.vestingDuration);
         const installmentCount = Number(schedule.installmentCount);
-        const installmentDuration = (vestingDuration - cliffDuration) / installmentCount;
+        const installmentDuration = vestingDuration / installmentCount;
 
         for (let i = 1; i <= installmentCount; i++) {
-            const timeToIncrease = Number(globalStartTime) + cliffDuration + (installmentDuration * i);
+            const timeToIncrease = Number(globalStartTime) + cliffDuration + (installmentDuration * (i - 1));
             await helpers.time.increaseTo(timeToIncrease);
             await vestingContract.connect(beneficiary).claim();
 
