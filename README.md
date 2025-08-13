@@ -42,7 +42,7 @@ This repository contains:
 | `InvestorVestingToken.sol`    | Vesting logic for investors (10‑month vesting with a 360‑day cliff).       |
 | `FounderVestingToken.sol`     | Vesting logic for founders (10‑month vesting with a 660‑day cliff).        |
 | `EmployeeVestingToken.sol`    | Vesting logic for employees (one-time cliff of 960 days).                 |
-| `Airdrop.sol`                 | Merkle tree–based airdrop distribution contract.                          |
+
 
 ## Database Schema (ERD)
 
