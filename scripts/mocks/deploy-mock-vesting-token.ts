@@ -45,7 +45,10 @@ async function main() {
   const mockVestingToken = await ethers.deployContract("MockVestingToken", [
     initialOwner,
     initialDistributorManager,
-    aimondTokenAddress
+    aimondTokenAddress,
+    1, // cliffDurationInDays
+    11, // vestingDurationInDays
+    10  // installmentCount
   ]);
   await mockVestingToken.waitForDeployment();
 
