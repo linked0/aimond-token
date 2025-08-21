@@ -18,7 +18,6 @@ describe("FounderVestingToken Scenarios", function () {
 
         // Transfer VestingToken to beneficiary
         const scheduleAmount = ethers.parseUnits("10000", 18);
-        console.log("Schedule Amount:", formatAimBalance(scheduleAmount));
         await vestingToken.connect(owner).transfer(beneficiary.address, scheduleAmount);
 
         // Transfer AMD to vesting contract
@@ -32,31 +31,24 @@ describe("FounderVestingToken Scenarios", function () {
         const { vestingToken, amdToken, owner, beneficiary, scheduleAmount } = await helpers.loadFixture(deployVestingFixture);
 
         const listingTimestamp = await helpers.time.latest();
-        console.log("Founder Listing Timestamp:", formatTimestamp(Number(listingTimestamp)), `(${listingTimestamp})`);
         await vestingToken.connect(owner).createVesting(beneficiary.address, scheduleAmount);
         await vestingToken.connect(owner).setGlobalStartTime(listingTimestamp);
         
         const schedule = await vestingToken.vestingSchedules(beneficiary.address);
         const globalStartTime = await vestingToken.globalStartTime();
-        console.log("Global Start Time:", formatTimestamp(Number(globalStartTime)), `(${globalStartTime})`);
-        console.log("Schedule Cliff Duration:", schedule.cliffDuration.toString());
         const cliffEndsTimestamp = Number(globalStartTime) + Number(schedule.cliffDuration);
         const twoSecBeforeCliffEnds = cliffEndsTimestamp - 2;
-        console.log("2 Sec Before Cliff Ends Timestamp:", formatTimestamp(Number(twoSecBeforeCliffEnds)), `(${twoSecBeforeCliffEnds})`);
 
         const initialBalance = await amdToken.balanceOf(beneficiary.address);
-        console.log("Founder AMD Initaial Balance:", formatAmdBalance(initialBalance));
 
         // IMPORTANT: There is a 1-second offset with `helpers.time.increaseTo`.
         // Calling `increaseTo(T)` results in the next block having a timestamp of `T + 1`.
         await helpers.time.increaseTo(twoSecBeforeCliffEnds);
-        console.log("Current Block Timestamp (before claim):", formatTimestamp(Number(await helpers.time.latest())), `(${await helpers.time.latest()})`);
         
         const releasableAmount = await vestingToken.getCurrentlyReleasableAmount(beneficiary.address);
         expect(releasableAmount).to.equal(0);
 
         await vestingToken.connect(owner).releaseTo(beneficiary.address);
-        console.log("Founder AMD Balance (Before Cliff Claim):", formatAmdBalance(await amdToken.balanceOf(beneficiary.address)));
         expect(await amdToken.balanceOf(beneficiary.address)).to.equal(initialBalance);
     });
 
@@ -64,22 +56,17 @@ describe("FounderVestingToken Scenarios", function () {
         const { vestingToken, amdToken, owner, beneficiary, scheduleAmount } = await helpers.loadFixture(deployVestingFixture);
 
         const listingTimestamp = await helpers.time.latest();
-        console.log("Founder Listing Timestamp:", formatTimestamp(Number(listingTimestamp)), `(${listingTimestamp})`);
         await vestingToken.connect(owner).createVesting(beneficiary.address, scheduleAmount);
         await vestingToken.connect(owner).setGlobalStartTime(listingTimestamp);
         
         const schedule = await vestingToken.vestingSchedules(beneficiary.address);
         const globalStartTime = await vestingToken.globalStartTime();
-        console.log("Global Start Time:", formatTimestamp(Number(globalStartTime)), `(${globalStartTime})`);
         const cliffEndsTimestamp = Number(globalStartTime) + Number(schedule.cliffDuration) - 1;
-        console.log("Cliff Ends Timestamp:", formatTimestamp(Number(cliffEndsTimestamp)), `(${cliffEndsTimestamp})`);
 
         await helpers.time.increaseTo(cliffEndsTimestamp); // one sec before cliff end
-        console.log("Founder Claim Time (After Cliff):", formatTimestamp(await helpers.time.latest()), `(${await helpers.time.latest()})`);
         await vestingToken.connect(owner).releaseTo(beneficiary.address);
 
         const expectedAmount = scheduleAmount / schedule.installmentCount;
-        console.log("Founder AMD Balance (after cliff claim):", formatAmdBalance(await amdToken.balanceOf(beneficiary.address)));
         expect(await amdToken.balanceOf(beneficiary.address)).to.equal(expectedAmount);
     });
 
@@ -87,22 +74,17 @@ describe("FounderVestingToken Scenarios", function () {
         const { vestingToken, amdToken, owner, beneficiary, scheduleAmount } = await helpers.loadFixture(deployVestingFixture);
 
         const listingTimestamp = await helpers.time.latest();
-        console.log("Founder Listing Timestamp:", formatTimestamp(Number(listingTimestamp)), `(${listingTimestamp})`);
         await vestingToken.connect(owner).createVesting(beneficiary.address, scheduleAmount);
         await vestingToken.connect(owner).setGlobalStartTime(listingTimestamp);
         
         const schedule = await vestingToken.vestingSchedules(beneficiary.address);
         const globalStartTime = await vestingToken.globalStartTime();
-        console.log("Global Start Time:", formatTimestamp(Number(globalStartTime)), `(${globalStartTime})`);
         const cliffEndsTimestamp = Number(globalStartTime) + Number(schedule.cliffDuration);
-        console.log("Cliff Ends Timestamp:", formatTimestamp(Number(cliffEndsTimestamp)), `(${cliffEndsTimestamp})`);
 
         await helpers.time.increaseTo(cliffEndsTimestamp); // Exactly at cliff end
-        console.log("Founder Claim Time (After Cliff):", formatTimestamp(await helpers.time.latest()), `(${await helpers.time.latest()})`);
         await vestingToken.connect(owner).releaseTo(beneficiary.address);
 
         const expectedAmount = scheduleAmount / schedule.installmentCount;
-        console.log("Founder AMD Balance (after cliff claim):", formatAmdBalance(await amdToken.balanceOf(beneficiary.address)));
         expect(await amdToken.balanceOf(beneficiary.address)).to.equal(expectedAmount);
     });
 
@@ -117,13 +99,10 @@ describe("FounderVestingToken Scenarios", function () {
         const globalStartTime = await vestingToken.globalStartTime();
         const fullVestingEndsTimestamp = Number(globalStartTime) + Number(schedule.totalVestingDuration);
         
-        console.log("Full Vesting Ends Timestamp:", formatTimestamp(Number(fullVestingEndsTimestamp)), `(${fullVestingEndsTimestamp})`);
 
         await helpers.time.increaseTo(fullVestingEndsTimestamp);
-        console.log("Founder Claim Time (After Full Vesting):", formatTimestamp(await helpers.time.latest()), `(${await helpers.time.latest()})`);
         await vestingToken.connect(owner).releaseTo(beneficiary.address);
 
-        console.log("Founder AMD Balance (after full vesting claim):", formatAmdBalance(await amdToken.balanceOf(beneficiary.address)));
         expect(await amdToken.balanceOf(beneficiary.address)).to.equal(scheduleAmount);
     });
 
@@ -144,13 +123,11 @@ describe("FounderVestingToken Scenarios", function () {
 
         for (let i = 0; i < schedule.installmentCount; i++) {
             const newTimestamp = Number(globalStartTime) + Number(schedule.cliffDuration) + Number(installmentDuration) * i - 1;
-            console.log("New installment:", formatTimestamp(Number(newTimestamp)), `(${newTimestamp})`);
         
             await helpers.time.increaseTo(newTimestamp);
             await vestingToken.connect(owner).releaseTo(beneficiary.address);
 
             totalClaimedAmd += expectedAmount;
-            console.log("Founder AMD Balance (after installment):", formatAmdBalance(await amdToken.balanceOf(beneficiary.address)));
             expect(await amdToken.balanceOf(beneficiary.address)).to.equal(totalClaimedAmd);
         }
     });
