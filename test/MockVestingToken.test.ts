@@ -31,6 +31,8 @@ describe("MockVestingToken Scenarios", function () {
         const globalStartTime = await vestingContract.globalStartTime();
         const cliffEndsTimestamp = Number(globalStartTime) + Number(schedule.cliffDuration);
 
+        // IMPORTANT: There is a 1-second offset with `helpers.time.increaseTo`.
+        // Calling `increaseTo(T)` results in the next block having a timestamp of `T + 1`.
         await helpers.time.increaseTo(cliffEndsTimestamp - 5); // 5 seconds before cliff ends
 
         const releasableAmount = await vestingContract.getCurrentlyReleasableAmount(beneficiary.address);
@@ -91,7 +93,7 @@ describe("MockVestingToken Scenarios", function () {
 
         const schedule = await vestingContract.vestingSchedules(beneficiary.address);
         const globalStartTime = await vestingContract.globalStartTime();
-        const vestingEndsTimestamp = Number(globalStartTime) + Number(schedule.cliffDuration) + Number(schedule.releaseDuration);
+        const vestingEndsTimestamp = Number(globalStartTime) + Number(schedule.totalVestingDuration);
 
         await helpers.time.increaseTo(vestingEndsTimestamp);
 

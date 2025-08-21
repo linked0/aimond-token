@@ -6,6 +6,8 @@ import * as helpers from "@nomicfoundation/hardhat-network-helpers";
 
 import { formatTimestamp, formatAmdBalance, formatAimBalance } from "./utils/time";
 
+import { TOTAL_VESTING_AMOUNT_FOUNDER } from "./constants";
+
 describe("FounderVestingToken Scenarios", function () {
     async function deployVestingFixture() {
         const [owner, beneficiary] = await ethers.getSigners();
@@ -20,7 +22,7 @@ describe("FounderVestingToken Scenarios", function () {
         await vestingToken.connect(owner).transfer(beneficiary.address, scheduleAmount);
 
         // Transfer AMD to vesting contract
-        const totalAmdForVesting = ethers.parseUnits("100000", 18); // Example total amount for vesting
+        const totalAmdForVesting = TOTAL_VESTING_AMOUNT_FOUNDER; // Total amount for vesting
         await amdToken.connect(owner).transfer(await vestingToken.getAddress(), totalAmdForVesting);
 
         return { vestingToken, amdToken, owner, beneficiary, scheduleAmount, amdDecimals };
@@ -45,6 +47,8 @@ describe("FounderVestingToken Scenarios", function () {
         const initialBalance = await amdToken.balanceOf(beneficiary.address);
         console.log("Founder AMD Initaial Balance:", formatAmdBalance(initialBalance));
 
+        // IMPORTANT: There is a 1-second offset with `helpers.time.increaseTo`.
+        // Calling `increaseTo(T)` results in the next block having a timestamp of `T + 1`.
         await helpers.time.increaseTo(twoSecBeforeCliffEnds);
         console.log("Current Block Timestamp (before claim):", formatTimestamp(Number(await helpers.time.latest())), `(${await helpers.time.latest()})`);
         
@@ -111,7 +115,7 @@ describe("FounderVestingToken Scenarios", function () {
         
         const schedule = await vestingToken.vestingSchedules(beneficiary.address);
         const globalStartTime = await vestingToken.globalStartTime();
-        const fullVestingEndsTimestamp = Number(globalStartTime) + Number(schedule.cliffDuration) + Number(schedule.releaseDuration);
+        const fullVestingEndsTimestamp = Number(globalStartTime) + Number(schedule.totalVestingDuration);
         
         console.log("Full Vesting Ends Timestamp:", formatTimestamp(Number(fullVestingEndsTimestamp)), `(${fullVestingEndsTimestamp})`);
 
@@ -163,7 +167,7 @@ describe("FounderVestingToken Scenarios", function () {
         const scheduleAmount2 = ethers.parseUnits("20000", 18);
         await vestingToken.connect(owner).transfer(beneficiary1.address, scheduleAmount1);
         await vestingToken.connect(owner).transfer(beneficiary2.address, scheduleAmount2);
-        const totalAmdForVesting = ethers.parseUnits("100000", 18);
+        const totalAmdForVesting = TOTAL_VESTING_AMOUNT_FOUNDER;
         await amdToken
             .connect(owner)
             .transfer(await vestingToken.getAddress(), totalAmdForVesting);
@@ -183,8 +187,7 @@ describe("FounderVestingToken Scenarios", function () {
         const globalStartTime = await vestingToken.globalStartTime();
         const fullVestingEndsTimestamp =
             Number(globalStartTime) +
-            Number(schedule.cliffDuration) +
-            Number(schedule.releaseDuration);
+            Number(schedule.totalVestingDuration);
 
         await helpers.time.increaseTo(fullVestingEndsTimestamp);
         await vestingToken
