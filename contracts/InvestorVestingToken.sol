@@ -26,13 +26,29 @@ contract InvestorVestingToken is BaseVestingToken {
     uint256 private constant INVESTOR_INSTALLMENT_COUNT = 10;
 
     /**
+     * @dev The total supply of InvestorVestingToken tokens, fixed at 24 billion.
+     */
+    uint256 private constant TOTAL_SUPPLY = 24_000_000_000 * 10**18;
+
+    /**
      * @dev Sets up the contract with initial parameters for investor vesting.
      * @param initialOwner The initial owner of the contract.
      * @param initialDistributorManager The initial distributor manager.
      * @param amdTokenAddress The address of the AMD token.
      */
-    constructor(address initialOwner, address initialDistributorManager, address amdTokenAddress)
-        BaseVestingToken("InvestorVestingToken", "AIMI", initialOwner, initialDistributorManager, amdTokenAddress, 24000000000 * (10 ** 18))
+    constructor(
+        address initialOwner,
+        address initialDistributorManager,
+        address amdTokenAddress
+    )
+        BaseVestingToken(
+            "InvestorVestingToken",
+            "AIMI",
+            initialOwner,
+            initialDistributorManager,
+            amdTokenAddress,
+            TOTAL_SUPPLY
+        )
     {}
 
     /**
@@ -41,7 +57,10 @@ contract InvestorVestingToken is BaseVestingToken {
      * @param beneficiary The address of the investor.
      * @param totalAmount The total amount of tokens to be vested.
      */
-    function createVesting(address beneficiary, uint256 totalAmount) public onlyOwner {
+    function createVesting(
+        address beneficiary,
+        uint256 totalAmount
+    ) public onlyOwner {
         _createVestingSchedule(
             beneficiary,
             INVESTOR_CLIFF_DAYS,
