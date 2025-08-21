@@ -21,7 +21,7 @@ describe("InvestorVestingToken Scenarios", function () {
         await vestingToken.connect(owner).transfer(beneficiary.address, scheduleAmount);
 
         // Transfer AMD to vesting contract
-        const totalAmdForVesting = TOTAL_VESTING_AMOUNT_INVESTOR; // Example total amount for vesting
+        const totalAmdForVesting = TOTAL_VESTING_AMOUNT_INVESTOR; // Total amount for vesting
         await amdToken.connect(owner).transfer(await vestingToken.getAddress(), totalAmdForVesting);
 
         return { vestingToken, amdToken, owner, beneficiary, scheduleAmount, amdDecimals };
@@ -147,7 +147,7 @@ describe("InvestorVestingToken Scenarios", function () {
         const scheduleAmount2 = ethers.parseUnits("20002", 18);
         await vestingToken.connect(owner).transfer(beneficiary1.address, scheduleAmount1);
         await vestingToken.connect(owner).transfer(beneficiary2.address, scheduleAmount2);
-                const totalAmdForVesting = TOTAL_VESTING_AMOUNT_INVESTOR;
+        const totalAmdForVesting = TOTAL_VESTING_AMOUNT_INVESTOR;
         await amdToken
             .connect(owner)
             .transfer(await vestingToken.getAddress(), totalAmdForVesting);
