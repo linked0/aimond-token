@@ -381,8 +381,11 @@ abstract contract BaseVestingToken is
         if (vestedInstallments == schedule.installmentCount) {
             totalVestedAmount = schedule.totalAmount;
         } else {
-            uint256 vestedProportionNumerator = schedule.totalAmount * vestedInstallments;
-            totalVestedAmount = vestedProportionNumerator / schedule.installmentCount;
+            uint256 vestedProportionNumerator = schedule.totalAmount *
+                vestedInstallments;
+            totalVestedAmount =
+                vestedProportionNumerator /
+                schedule.installmentCount;
         }
 
         return totalVestedAmount - schedule.releasedAmount;

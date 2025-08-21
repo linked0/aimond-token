@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "hardhat test",
-    "test:inv": "hardhat test test/InvestorVesting.test.ts",
-    "test:fnd": "hardhat test test/FounderVesting.test.ts",
-    "test:emp": "hardhat test test/EmployeeVesting.test.ts",
+    "test:inv": "hardhat test test/InvestorVestingToken.test.ts",
+    "test:fnd": "hardhat test test/FounderVestingToken.test.ts",
+    "test:emp": "hardhat test test/EmployeeVestingToken.test.ts",
     "test:mock": "hardhat test test/MockVestingToken.test.ts",
     "build": "hardhat compile",
     "localnode": "NODE_OPTIONS='--max-old-space-size=8192' yarn hardhat node --port 8545",
