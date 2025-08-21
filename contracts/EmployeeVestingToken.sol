@@ -26,13 +26,29 @@ contract EmployeeVestingToken is BaseVestingToken {
     uint256 private constant EMPLOYEE_INSTALLMENT_COUNT = 1;
 
     /**
+     * @dev The total supply of EmployeeVestingToken tokens, fixed at 5.2 billion.
+     */
+    uint256 private constant TOTAL_SUPPLY = 5_200_000_000 * 10**18;
+
+    /**
      * @dev Sets up the contract with initial parameters for employee vesting.
      * @param initialOwner The initial owner of the contract.
      * @param initialDistributorManager The initial distributor manager.
      * @param amdTokenAddress The address of the AMD token.
      */
-    constructor(address initialOwner, address initialDistributorManager, address amdTokenAddress)
-        BaseVestingToken("EmployeeVestingToken", "AIME", initialOwner, initialDistributorManager, amdTokenAddress, 5200000000 * (10 ** 18))
+    constructor(
+        address initialOwner,
+        address initialDistributorManager,
+        address amdTokenAddress
+    )
+        BaseVestingToken(
+            "EmployeeVestingToken",
+            "AIME",
+            initialOwner,
+            initialDistributorManager,
+            amdTokenAddress,
+            TOTAL_SUPPLY
+        )
     {}
 
     /**
@@ -41,7 +57,10 @@ contract EmployeeVestingToken is BaseVestingToken {
      * @param beneficiary The address of the employee.
      * @param totalAmount The total amount of tokens to be vested.
      */
-    function createVesting(address beneficiary, uint256 totalAmount) public onlyOwner {
+    function createVesting(
+        address beneficiary,
+        uint256 totalAmount
+    ) public onlyOwner {
         _createVestingSchedule(
             beneficiary,
             EMPLOYEE_CLIFF_DAYS,
@@ -50,6 +69,4 @@ contract EmployeeVestingToken is BaseVestingToken {
             totalAmount
         );
     }
-
-    
 }
