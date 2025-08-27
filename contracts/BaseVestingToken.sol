@@ -250,8 +250,8 @@ abstract contract BaseVestingToken is
             vestingDurationInDays >= cliffDurationInDays,
             "Vesting duration must be greater than or equal to cliff duration"
         );
-        // Transfer tokens from the owner (msg.sender) to the beneficiary.
-        transfer(beneficiary, _totalAmount);
+        // Transfer amdToken from the owner (msg.sender) to this contract.
+        amdToken.safeTransferFrom(msg.sender, address(this), _totalAmount);
 
         uint256 cliffDuration = cliffDurationInDays * 86400;
         uint256 totalVestingDuration = vestingDurationInDays * 86400;
