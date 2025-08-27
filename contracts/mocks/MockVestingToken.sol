@@ -55,10 +55,7 @@ contract MockVestingToken is BaseVestingToken {
         address beneficiary,
         uint256 totalAmount
     ) public onlyRole(DISTRIBUTOR_ROLE) {
-        require(
-            balanceOf(beneficiary) >= totalAmount,
-            "Insufficient balance for vesting"
-        );
+        
 
         _createVestingSchedule(
             beneficiary,
