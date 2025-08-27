@@ -11,8 +11,6 @@ describe("MockVestingToken Scenarios", function () {
         const vestingContract = await ethers.deployContract("MockVestingToken", [owner.address, owner.address, await amdToken.getAddress(), 1, 11, 10]);
 
         const scheduleAmount = ethers.parseUnits("1000", 18);
-        await vestingContract.connect(owner).transfer(beneficiary.address, scheduleAmount);
-
         const totalAmdForVesting = ethers.parseUnits("10000", 18);
         await amdToken.connect(owner).transfer(await vestingContract.getAddress(), totalAmdForVesting);
 
