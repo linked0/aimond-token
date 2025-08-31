@@ -19,13 +19,19 @@
     "deploy:all:localnet": "hardhat run scripts/deploy-all.ts --network localnet",
     "deploy:localnet": "hardhat run scripts/deploy.ts --network localnet",
     "deploy:aimond:testnet": "hardhat run scripts/deploy-aimond-token.ts --network bscTestnet",
-    
     "deploy:employee:testnet": "hardhat run scripts/deploy-employee-vesting-token.ts --network bscTestnet",
     "deploy:founder:testnet": "hardhat run scripts/deploy-founder-vesting-token.ts --network bscTestnet",
     "deploy:investor:testnet": "hardhat run scripts/deploy-investor-vesting-token.ts --network bscTestnet",
     "deploy:mock:testnet": "hardhat run scripts/mocks/deploy-mock-vesting-token.ts --network bscTestnet",
     "deploy:all:testnet": "hardhat run scripts/deploy-all.ts --network bscTestnet",
-    "deploy:testnet": "hardhat run scripts/deploy.ts --network bscTestnet"
+    "deploy:testnet": "hardhat run scripts/deploy.ts --network bscTestnet",
+    "create:investor:testnet": "hardhat run scripts/create-investor-vesting.ts --network bscTestnet",
+    "create:keystore:loyalty": "hardhat run scripts/create-keystore.ts",
+    "deploy:loyalty:bscTestnet": "hardhat run scripts/deploy-loyalty-point.ts --network bscTestnet",
+    "info:loyalty:admin": "hardhat run scripts/get-loyalty-admin.ts --network bscTestnet",
+    "info:loyalty:token": "hardhat run scripts/get-loyalty-token.ts --network bscTestnet",
+    "fund:loyalty": "hardhat run scripts/fund-loyalty-point.ts --network bscTestnet",
+    "info:loyalty:balances": "hardhat run scripts/get-loyalty-balances.ts --network bscTestnet"
   },
   "keywords": [],
   "author": "",
@@ -58,6 +64,8 @@
   "dependencies": {
     "@openzeppelin/contracts": "^5.4.0",
     "@safe-global/protocol-kit": "^2.0.0",
-    "@safe-global/safe-core-sdk-types": "^2.0.0"
+    "@safe-global/safe-core-sdk-types": "^2.0.0",
+    "keccak256": "^1.0.6",
+    "merkletreejs": "^0.5.2"
   }
 }
