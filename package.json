@@ -19,7 +19,6 @@
     "deploy:all:localnet": "hardhat run scripts/deploy-all.ts --network localnet",
     "deploy:localnet": "hardhat run scripts/deploy.ts --network localnet",
     "deploy:aimond:testnet": "hardhat run scripts/deploy-aimond-token.ts --network bscTestnet",
-    
     "deploy:employee:testnet": "hardhat run scripts/deploy-employee-vesting-token.ts --network bscTestnet",
     "deploy:founder:testnet": "hardhat run scripts/deploy-founder-vesting-token.ts --network bscTestnet",
     "deploy:investor:testnet": "hardhat run scripts/deploy-investor-vesting-token.ts --network bscTestnet",
@@ -58,6 +57,8 @@
   "dependencies": {
     "@openzeppelin/contracts": "^5.4.0",
     "@safe-global/protocol-kit": "^2.0.0",
-    "@safe-global/safe-core-sdk-types": "^2.0.0"
+    "@safe-global/safe-core-sdk-types": "^2.0.0",
+    "keccak256": "^1.0.6",
+    "merkletreejs": "^0.5.2"
   }
 }
