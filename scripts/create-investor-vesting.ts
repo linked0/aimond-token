@@ -9,15 +9,15 @@ async function main() {
   console.log("Creating vesting schedule with the account:", deployer.address);
 
   // --- Get and validate variables from .env ---
-  const userAddress = process.env.USER_ADDRESS;
+  const userAddress = process.env.INVESTOR_ADDRESS;
   if (!userAddress) {
-    throw new Error("USER_ADDRESS is not set in .env file");
+    throw new Error("INVESTOR_ADDRESS is not set in .env file");
   }
   if (!isAddress(userAddress)) {
-    throw new Error(`USER_ADDRESS is invalid: ${userAddress}`);
+    throw new Error(`INVESTOR_ADDRESS is invalid: ${userAddress}`);
   }
   if (userAddress === ZeroAddress) {
-    throw new Error("USER_ADDRESS cannot be the zero address");
+    throw new Error("INVESTOR_ADDRESS cannot be the zero address");
   }
   console.log(`Beneficiary address: ${userAddress}`);
 
