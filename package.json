@@ -25,7 +25,9 @@
     "deploy:investor:testnet": "hardhat run scripts/deploy-investor-vesting-token.ts --network bscTestnet",
     "deploy:mock:testnet": "hardhat run scripts/mocks/deploy-mock-vesting-token.ts --network bscTestnet",
     "deploy:all:testnet": "hardhat run scripts/deploy-all.ts --network bscTestnet",
-    "deploy:testnet": "hardhat run scripts/deploy.ts --network bscTestnet"
+    "deploy:testnet": "hardhat run scripts/deploy.ts --network bscTestnet",
+
+    "create:investor:testnet": "hardhat run scripts/create-investor-vesting.ts --network bscTestnet"
   },
   "keywords": [],
   "author": "",
