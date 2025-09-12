@@ -9,6 +9,7 @@
     "test:fnd": "hardhat test test/FounderVestingToken.test.ts",
     "test:emp": "hardhat test test/EmployeeVestingToken.test.ts",
     "test:mock": "hardhat test test/MockVestingToken.test.ts",
+    "test:loyalty": "hardhat test test/LoyaltyPoint.test.ts",
     "build": "hardhat compile",
     "localnode": "NODE_OPTIONS='--max-old-space-size=8192' yarn hardhat node --port 8545",
     "deploy:aimond:localnet": "hardhat run scripts/deploy-aimond-token.ts --network localnet",
