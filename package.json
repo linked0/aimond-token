@@ -27,7 +27,13 @@
     "deploy:all:testnet": "hardhat run scripts/deploy-all.ts --network bscTestnet",
     "deploy:testnet": "hardhat run scripts/deploy.ts --network bscTestnet",
 
-    "create:investor:testnet": "hardhat run scripts/create-investor-vesting.ts --network bscTestnet"
+    "create:investor:testnet": "hardhat run scripts/create-investor-vesting.ts --network bscTestnet",
+    "create:keystore:loyalty": "hardhat run scripts/create-keystore.ts",
+    "deploy:loyalty:bscTestnet": "hardhat run scripts/deploy-loyalty-point.ts --network bscTestnet",
+    "info:loyalty:admin": "hardhat run scripts/get-loyalty-admin.ts --network bscTestnet",
+    "info:loyalty:token": "hardhat run scripts/get-loyalty-token.ts --network bscTestnet",
+    "fund:loyalty": "hardhat run scripts/fund-loyalty-point.ts --network bscTestnet",
+    "info:loyalty:balances": "hardhat run scripts/get-loyalty-balances.ts --network bscTestnet"
   },
   "keywords": [],
   "author": "",
