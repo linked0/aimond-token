@@ -17,9 +17,9 @@ async function main() {
     throw new Error("LOYALTY_POINT_ADDRESS not found in .env file");
   }
 
-  const loyaltyPointFund = process.env.LOYALTY_POINT_FUND;
+  const loyaltyPointFund = process.env.LOYALTY_POINT_FUND_AMOUNT;
   if (!loyaltyPointFund) {
-    throw new Error("LOYALTY_POINT_FUND not found in .env file");
+    throw new Error("LOYALTY_POINT_FUND_AMOUNT not found in .env file");
   }
 
   const aimondToken = await ethers.getContractAt("AimondToken", aimondAddress);

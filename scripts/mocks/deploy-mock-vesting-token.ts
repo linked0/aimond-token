@@ -41,14 +41,32 @@ async function main() {
     throw new Error("AIMOND_ADDRESS cannot be the zero address");
   }
 
+  const mockCliffDuration = process.env.MOCK_CLIFF_DURATION;
+  if (!mockCliffDuration) {
+    throw new Error("MOCK_CLIFF_DURATION is not set in .env file");
+  }
+  const cliffDurationInSeconds = parseInt(mockCliffDuration);
+
+  const mockVestingDuration = process.env.MOCK_VESTING_DURATION;
+  if (!mockVestingDuration) {
+    throw new Error("MOCK_VESTING_DURATION is not set in .env file");
+  }
+  const vestingDurationInSeconds = parseInt(mockVestingDuration);
+
+  const mockInstallmentCount = process.env.MOCK_INSTALLMENT_COUNT;
+  if (!mockInstallmentCount) {
+    throw new Error("MOCK_INSTALLMENT_COUNT is not set in .env file");
+  }
+  const installmentCount = parseInt(mockInstallmentCount);
+
   // Deploy MockVestingToken
   const mockVestingToken = await ethers.deployContract("MockVestingToken", [
     initialOwner,
     initialDistributorManager,
     aimondTokenAddress,
-    1, // cliffDurationInDays
-    11, // vestingDurationInDays
-    10  // installmentCount
+    cliffDurationInSeconds,
+    vestingDurationInSeconds,
+    installmentCount
   ]);
   await mockVestingToken.waitForDeployment();
 

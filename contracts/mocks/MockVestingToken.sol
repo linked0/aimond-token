@@ -10,9 +10,9 @@ import "../BaseVestingToken.sol";
  * @dev This contract inherits from BaseVestingToken and provides a simplified vesting schedule creation for testing.
  */
 contract MockVestingToken is BaseVestingToken {
-    uint256 public immutable cliffDurationInSeconds;
-    uint256 public immutable vestingDurationInSeconds;
-    uint256 public immutable installmentCount;
+    uint256 public cliffDurationInSeconds;
+    uint256 public vestingDurationInSeconds;
+    uint256 public installmentCount;
 
     /**
      * @dev Sets up the contract with initial parameters for the mock vesting token.
@@ -46,12 +46,29 @@ contract MockVestingToken is BaseVestingToken {
     }
 
     /**
+     * @notice Sets the vesting parameters for the mock vesting token.
+     * @dev Can only be called by the contract owner.
+     * @param _cliffDurationInSeconds The cliff duration in seconds.
+     * @param _vestingDurationInSeconds The total vesting duration in seconds.
+     * @param _installmentCount The number of installments.
+     */
+    function setVestingParameters(
+        uint256 _cliffDurationInSeconds,
+        uint256 _vestingDurationInSeconds,
+        uint256 _installmentCount
+    ) public onlyOwner {
+        cliffDurationInSeconds = _cliffDurationInSeconds;
+        vestingDurationInSeconds = _vestingDurationInSeconds;
+        installmentCount = _installmentCount;
+    }
+
+    /**
      * @notice Creates a vesting schedule for a beneficiary with the mock schedule.
      * @dev Can only be called by an address with the DISTRIBUTOR_ROLE.
      * @param beneficiary The address of the beneficiary.
      * @param totalAmount The total amount of tokens to be vested.
      */
-    function createVestingSchedule(
+    function createVesting(
         address beneficiary,
         uint256 totalAmount
     ) public onlyRole(DISTRIBUTOR_ROLE) {

@@ -34,7 +34,11 @@
     "info:loyalty:admin": "hardhat run scripts/get-loyalty-admin.ts --network bscTestnet",
     "info:loyalty:token": "hardhat run scripts/get-loyalty-token.ts --network bscTestnet",
     "fund:loyalty": "hardhat run scripts/fund-loyalty-point.ts --network bscTestnet",
-    "info:loyalty:balances": "hardhat run scripts/get-loyalty-balances.ts --network bscTestnet"
+    "info:loyalty:balances": "hardhat run scripts/get-loyalty-balances.ts --network bscTestnet",
+    "set:mock:testnet": "hardhat run scripts/mocks/set-mock-parameters.ts --network bscTestnet",
+    "info:mock:testnet": "hardhat run scripts/mocks/get-mock-info.ts --network bscTestnet",
+    "fund:mock:testnet": "hardhat run scripts/mocks/fund-mock-token.ts --network bscTestnet",
+    "info:mock:schedule:testnet": "hardhat run scripts/mocks/get-mock-schedule.ts --network bscTestnet"
   },
   "keywords": [],
   "author": "",

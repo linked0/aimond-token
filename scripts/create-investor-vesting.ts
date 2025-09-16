@@ -30,9 +30,9 @@ async function main() {
   }
   console.log(`InvestorVestingToken contract address: ${contractAddress}`);
 
-  const totalAmountStr = process.env.INVESTOR_VESTING_AMOUNT;
+  const totalAmountStr = process.env.INVESTOR_VESTING_FUND_AMOUNT;
   if (!totalAmountStr) {
-    throw new Error("INVESTOR_VESTING_AMOUNT is not set in .env file.");
+    throw new Error("INVESTOR_VESTING_FUND_AMOUNT is not set in .env file.");
   }
   const totalAmount = ethers.parseUnits(totalAmountStr, 18); // Assuming 18 decimals
   if (totalAmount <= 0) {
