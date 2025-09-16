@@ -29,7 +29,7 @@ abstract contract BaseVestingToken is
      * @param totalAmount The total amount of tokens to be vested.
      * @param totalVestingDuration The total duration of the vesting period in seconds, after the cliff.
      * @param cliffDuration The duration in seconds before vesting starts.
-     * @param releaseDuration The duration in second after cliff ends.
+     * @param releaseDuration The duration in seconds after cliff ends.
      * @param installmentCount The number of installments in which the tokens are released.
      * @param releasedAmount The amount of tokens already released.
      */
@@ -74,7 +74,7 @@ abstract contract BaseVestingToken is
      * @param beneficiary The address of the beneficiary.
      * @param totalVestingDuration The total duration of the vesting period in seconds, after the cliff.
      * @param cliffDuration The duration in seconds before vesting starts.
-     * @param releaseDuration The duration in second after cliff ends.
+     * @param releaseDuration The duration in seconds after cliff ends.
      * @param installmentCount The number of installments in which the tokens are released.
      * @param totalAmount The total amount of tokens to be vested.
      */
@@ -228,15 +228,15 @@ abstract contract BaseVestingToken is
     /**
      * @dev Internal function to create a vesting schedule for a beneficiary.
      * @param beneficiary The address of the beneficiary.
-     * @param cliffDurationInDays The cliff duration in days.
-     * @param vestingDurationInDays The vesting duration in days.
+     * @param cliffDurationInSeconds The cliff duration in seconds.
+     * @param vestingDurationInSeconds The vesting duration in seconds.
      * @param installmentCount The number of installments.
      * @param _totalAmount The total amount of tokens to be vested.
      */
     function _createVestingSchedule(
         address beneficiary,
-        uint256 cliffDurationInDays,
-        uint256 vestingDurationInDays,
+        uint256 cliffDurationInSeconds,
+        uint256 vestingDurationInSeconds,
         uint256 installmentCount,
         uint256 _totalAmount
     ) internal {
@@ -247,14 +247,14 @@ abstract contract BaseVestingToken is
         require(_totalAmount > 0, "Total amount must be greater than 0");
         require(installmentCount > 0, "Installment count must be > 0");
         require(
-            vestingDurationInDays >= cliffDurationInDays,
+            vestingDurationInSeconds >= cliffDurationInSeconds,
             "Vesting duration must be greater than or equal to cliff duration"
         );
         // Transfer amdToken from the owner (msg.sender) to this contract.
         amdToken.safeTransferFrom(msg.sender, address(this), _totalAmount);
 
-        uint256 cliffDuration = cliffDurationInDays * 86400;
-        uint256 totalVestingDuration = vestingDurationInDays * 86400;
+        uint256 cliffDuration = cliffDurationInSeconds;
+        uint256 totalVestingDuration = vestingDurationInSeconds;
         uint256 releaseDuration = totalVestingDuration - cliffDuration;
 
         vestingSchedules[beneficiary] = VestingSchedule({
@@ -329,7 +329,7 @@ abstract contract BaseVestingToken is
     function setGlobalStartTime(uint256 newStartTime) public onlyOwner {
         require(globalStartTime == 0, "Global start time already set");
         require(newStartTime > 0, "Invalid start time");
-        globalStartTime = (newStartTime / 86400) * 86400; // Floor to the nearest day
+        globalStartTime = newStartTime;
         emit GlobalStartTimeSet(globalStartTime);
     }
 

@@ -11,14 +11,14 @@ import "./BaseVestingToken.sol";
  */
 contract EmployeeVestingToken is BaseVestingToken {
     /**
-     * @dev The cliff period for employee vesting in days.
+     * @dev The cliff period for employee vesting in seconds.
      */
-    uint256 private constant EMPLOYEE_CLIFF_DAYS = 960;
+    uint256 private constant EMPLOYEE_CLIFF_SECONDS = 960 * 24 * 60 * 60;
 
     /**
-     * @dev The vesting period for employee vesting in days.
+     * @dev The vesting period for employee vesting in seconds.
      */
-    uint256 private constant EMPLOYEE_VESTING_DAYS = EMPLOYEE_CLIFF_DAYS;
+    uint256 private constant EMPLOYEE_VESTING_SECONDS = EMPLOYEE_CLIFF_SECONDS;
 
     /**
      * @dev The number of installments for employee vesting.
@@ -28,7 +28,7 @@ contract EmployeeVestingToken is BaseVestingToken {
     /**
      * @dev The total supply of EmployeeVestingToken tokens, fixed at 5.2 billion.
      */
-    uint256 private constant TOTAL_SUPPLY = 5_200_000_000 * 10**18;
+    uint256 private constant TOTAL_SUPPLY = 5_200_000_000 * 10 ** 18;
 
     /**
      * @dev Sets up the contract with initial parameters for employee vesting.
@@ -63,8 +63,8 @@ contract EmployeeVestingToken is BaseVestingToken {
     ) public onlyOwner {
         _createVestingSchedule(
             beneficiary,
-            EMPLOYEE_CLIFF_DAYS,
-            EMPLOYEE_VESTING_DAYS,
+            EMPLOYEE_CLIFF_SECONDS,
+            EMPLOYEE_VESTING_SECONDS,
             EMPLOYEE_INSTALLMENT_COUNT,
             totalAmount
         );

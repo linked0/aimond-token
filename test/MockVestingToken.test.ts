@@ -8,7 +8,7 @@ describe("MockVestingToken Scenarios", function () {
     async function deployVestingFixture() {
         const [owner, beneficiary] = await ethers.getSigners();
         const amdToken = await ethers.deployContract("AimondToken", [owner.address]);
-        const vestingContract = await ethers.deployContract("MockVestingToken", [owner.address, owner.address, await amdToken.getAddress(), 1, 11, 10]);
+        const vestingContract = await ethers.deployContract("MockVestingToken", [owner.address, owner.address, await amdToken.getAddress(), 86400, 950400, 10]);
 
         const scheduleAmount = ethers.parseUnits("1000", 18);
         const totalAmdForVesting = ethers.parseUnits("10000", 18);
