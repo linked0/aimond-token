@@ -21,7 +21,7 @@ describe("MockVestingToken Scenarios", function () {
         const { vestingContract, amdToken, owner, beneficiary, scheduleAmount } = await helpers.loadFixture(deployVestingFixture);
 
         const listingTimestamp = await helpers.time.latest();
-        await vestingContract.connect(owner).createVestingSchedule(beneficiary.address, scheduleAmount);
+        await vestingContract.connect(owner).createVesting(beneficiary.address, scheduleAmount);
         await vestingContract.connect(owner).setGlobalStartTime(listingTimestamp);
 
         const schedule = await vestingContract.vestingSchedules(beneficiary.address);
@@ -43,7 +43,7 @@ describe("MockVestingToken Scenarios", function () {
         const { vestingContract, amdToken, owner, beneficiary, scheduleAmount } = await helpers.loadFixture(deployVestingFixture);
 
         const listingTimestamp = await helpers.time.latest();
-        await vestingContract.connect(owner).createVestingSchedule(beneficiary.address, scheduleAmount);
+        await vestingContract.connect(owner).createVesting(beneficiary.address, scheduleAmount);
         await vestingContract.connect(owner).setGlobalStartTime(listingTimestamp);
 
         const schedule = await vestingContract.vestingSchedules(beneficiary.address);
@@ -61,7 +61,7 @@ describe("MockVestingToken Scenarios", function () {
         const { vestingContract, amdToken, owner, beneficiary, scheduleAmount } = await helpers.loadFixture(deployVestingFixture);
 
         const listingTimestamp = await helpers.time.latest();
-        await vestingContract.connect(owner).createVestingSchedule(beneficiary.address, scheduleAmount);
+        await vestingContract.connect(owner).createVesting(beneficiary.address, scheduleAmount);
         await vestingContract.connect(owner).setGlobalStartTime(listingTimestamp);
 
         const schedule = await vestingContract.vestingSchedules(beneficiary.address);
@@ -85,7 +85,7 @@ describe("MockVestingToken Scenarios", function () {
         const { vestingContract, amdToken, owner, beneficiary, scheduleAmount } = await helpers.loadFixture(deployVestingFixture);
 
         const listingTimestamp = await helpers.time.latest();
-        await vestingContract.connect(owner).createVestingSchedule(beneficiary.address, scheduleAmount);
+        await vestingContract.connect(owner).createVesting(beneficiary.address, scheduleAmount);
         await vestingContract.connect(owner).setGlobalStartTime(listingTimestamp);
 
         const schedule = await vestingContract.vestingSchedules(beneficiary.address);
