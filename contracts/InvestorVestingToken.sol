@@ -11,14 +11,15 @@ import "./BaseVestingToken.sol";
  */
 contract InvestorVestingToken is BaseVestingToken {
     /**
-     * @dev The cliff period for investor vesting in days.
+     * @dev The cliff period for investor vesting in seconds.
      */
-    uint256 private constant INVESTOR_CLIFF_DAYS = 360;
+    uint256 private constant INVESTOR_CLIFF_SECONDS = 360 * 24 * 60 * 60;
 
     /**
-     * @dev The vesting period for investor vesting in days.
+     * @dev The vesting period for investor vesting in seconds.
      */
-    uint256 private constant INVESTOR_VESTING_DAYS = INVESTOR_CLIFF_DAYS + 300;
+    uint256 private constant INVESTOR_VESTING_SECONDS =
+        INVESTOR_CLIFF_SECONDS + 300 * 24 * 60 * 60;
 
     /**
      * @dev The number of installments for investor vesting.
@@ -63,8 +64,8 @@ contract InvestorVestingToken is BaseVestingToken {
     ) public onlyOwner {
         _createVestingSchedule(
             beneficiary,
-            INVESTOR_CLIFF_DAYS,
-            INVESTOR_VESTING_DAYS,
+            INVESTOR_CLIFF_SECONDS,
+            INVESTOR_VESTING_SECONDS,
             INVESTOR_INSTALLMENT_COUNT,
             totalAmount
         );

@@ -11,14 +11,15 @@ import "./BaseVestingToken.sol";
  */
 contract FounderVestingToken is BaseVestingToken {
     /**
-     * @dev The cliff period for founder vesting in days.
+     * @dev The cliff period for founder vesting in seconds.
      */
-    uint256 private constant FOUNDER_CLIFF_DAYS = 660;
+    uint256 private constant FOUNDER_CLIFF_SECONDS = 660 * 24 * 60 * 60;
 
     /**
-     * @dev The vesting period for founder vesting in days.
+     * @dev The vesting period for founder vesting in seconds.
      */
-    uint256 private constant FOUNDER_VESTING_DAYS = FOUNDER_CLIFF_DAYS + 300;
+    uint256 private constant FOUNDER_VESTING_SECONDS =
+        FOUNDER_CLIFF_SECONDS + 300 * 24 * 60 * 60;
 
     /**
      * @dev The number of installments for founder vesting.
@@ -63,8 +64,8 @@ contract FounderVestingToken is BaseVestingToken {
     ) public onlyOwner {
         _createVestingSchedule(
             beneficiary,
-            FOUNDER_CLIFF_DAYS,
-            FOUNDER_VESTING_DAYS,
+            FOUNDER_CLIFF_SECONDS,
+            FOUNDER_VESTING_SECONDS,
             FOUNDER_INSTALLMENT_COUNT,
             totalAmount
         );

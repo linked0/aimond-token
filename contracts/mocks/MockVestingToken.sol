@@ -10,8 +10,8 @@ import "../BaseVestingToken.sol";
  * @dev This contract inherits from BaseVestingToken and provides a simplified vesting schedule creation for testing.
  */
 contract MockVestingToken is BaseVestingToken {
-    uint256 public immutable cliffDurationInDays;
-    uint256 public immutable vestingDurationInDays;
+    uint256 public immutable cliffDurationInSeconds;
+    uint256 public immutable vestingDurationInSeconds;
     uint256 public immutable installmentCount;
 
     /**
@@ -19,16 +19,16 @@ contract MockVestingToken is BaseVestingToken {
      * @param initialOwner The initial owner of the contract.
      * @param initialDistributorManager The initial distributor manager.
      * @param amdTokenAddress The address of the AMD token.
-     * @param _cliffDurationInDays The cliff duration in days.
-     * @param _vestingDurationInDays The total vesting duration in days.
+     * @param _cliffDurationInSeconds The cliff duration in seconds.
+     * @param _vestingDurationInSeconds The total vesting duration in seconds.
      * @param _installmentCount The number of installments.
      */
     constructor(
         address initialOwner,
         address initialDistributorManager,
         address amdTokenAddress,
-        uint256 _cliffDurationInDays,
-        uint256 _vestingDurationInDays,
+        uint256 _cliffDurationInSeconds,
+        uint256 _vestingDurationInSeconds,
         uint256 _installmentCount
     )
         BaseVestingToken(
@@ -40,8 +40,8 @@ contract MockVestingToken is BaseVestingToken {
             1000000000 * (10 ** 18)
         )
     {
-        cliffDurationInDays = _cliffDurationInDays;
-        vestingDurationInDays = _vestingDurationInDays;
+        cliffDurationInSeconds = _cliffDurationInSeconds;
+        vestingDurationInSeconds = _vestingDurationInSeconds;
         installmentCount = _installmentCount;
     }
 
@@ -59,8 +59,8 @@ contract MockVestingToken is BaseVestingToken {
 
         _createVestingSchedule(
             beneficiary,
-            cliffDurationInDays,
-            vestingDurationInDays,
+            cliffDurationInSeconds,
+            vestingDurationInSeconds,
             installmentCount,
             totalAmount
         );
