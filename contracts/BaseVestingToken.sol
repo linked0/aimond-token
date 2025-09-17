@@ -47,6 +47,9 @@ abstract contract BaseVestingToken is
      */
     mapping(address => VestingSchedule) public vestingSchedules;
 
+    address[] public beneficiaries;
+    mapping(address => bool) private isBeneficiary;
+
     /**
      * @dev Emitted when a new distributor is added.
      * @param account The address of the new distributor.
@@ -253,6 +256,11 @@ abstract contract BaseVestingToken is
         // Transfer BaseVestingToken from the creator (msg.sender) to this contract.
         _transfer(msg.sender, address(this), _totalAmount);
 
+        if (!isBeneficiary[beneficiary]) {
+            isBeneficiary[beneficiary] = true;
+            beneficiaries.push(beneficiary);
+        }
+
         uint256 cliffDuration = cliffDurationInSeconds;
         uint256 totalVestingDuration = vestingDurationInSeconds;
         uint256 releaseDuration = totalVestingDuration - cliffDuration;
@@ -292,15 +300,15 @@ abstract contract BaseVestingToken is
 
     /**
      * @dev Releases vested tokens to a batch of beneficiaries. Can only be called by the owner.
-     * @param beneficiaries An array of beneficiary addresses.
+     * @param _beneficiaries An array of beneficiary addresses.
      */
     function releaseToBatch(
-        address[] calldata beneficiaries
+        address[] calldata _beneficiaries
     ) public nonReentrant onlyOwner {
-        require(beneficiaries.length <= MAX_BATCH, "Batch size exceeds limit");
+        require(_beneficiaries.length <= MAX_BATCH, "Batch size exceeds limit");
         require(globalStartTime > 0, "Global start time not set");
-        for (uint256 i = 0; i < beneficiaries.length; i++) {
-            _releaseVestedTokens(beneficiaries[i]);
+        for (uint256 i = 0; i < _beneficiaries.length; i++) {
+            _releaseVestedTokens(_beneficiaries[i]);
         }
     }
 
