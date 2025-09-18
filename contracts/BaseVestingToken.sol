@@ -49,6 +49,7 @@ abstract contract BaseVestingToken is
 
     address[] public beneficiaries;
     mapping(address => bool) private isBeneficiary;
+    uint256 public beneficiariesCount;
 
     /**
      * @dev Emitted when a new distributor is added.
@@ -259,6 +260,7 @@ abstract contract BaseVestingToken is
         if (!isBeneficiary[beneficiary]) {
             isBeneficiary[beneficiary] = true;
             beneficiaries.push(beneficiary);
+            beneficiariesCount++;
         }
 
         uint256 cliffDuration = cliffDurationInSeconds;
@@ -395,5 +397,10 @@ abstract contract BaseVestingToken is
         }
 
         return totalVestedAmount - schedule.releasedAmount;
+    }
+
+    function getBeneficiaryAtIndex(uint256 index) public view returns (address) {
+        require(index < beneficiariesCount, "Index out of bounds");
+        return beneficiaries[index];
     }
 }
