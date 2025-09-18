@@ -1,4 +1,3 @@
-
 import { ethers } from "hardhat";
 import { isAddress, ZeroAddress } from "ethers";
 import "dotenv/config";
@@ -67,16 +66,32 @@ async function main() {
   await investorVestingToken.waitForDeployment();
   console.log("InvestorVestingToken deployed to:", investorVestingToken.target);
 
+  // Deploy MockVestingToken
+  const ONE_DAY_IN_SECONDS = 24 * 60 * 60;
+  const THIRTY_DAYS_IN_SECONDS = 30 * ONE_DAY_IN_SECONDS;
+  const mockVestingToken = await ethers.deployContract("MockVestingToken", [
+    initialOwner,
+    initialDistributorManager,
+    aimondToken.target,
+    ONE_DAY_IN_SECONDS, // _cliffDurationInSeconds
+    THIRTY_DAYS_IN_SECONDS, // _vestingDurationInSeconds
+    30 // _installmentCount
+  ]);
+  await mockVestingToken.waitForDeployment();
+  console.log("MockVestingToken deployed to:", mockVestingToken.target);
+
   console.log(`AIMOND_ADDRESS=${aimondToken.target}`);
   console.log(`INVESTOR_VESTING_ADDRESS=${investorVestingToken.target}`);
   console.log(`FOUNDER_VESTING_ADDRESS=${founderVestingToken.target}`);
   console.log(`EMPLOYEE_VESTING_ADDRESS=${employeeVestingToken.target}`);
   console.log(`LOYALTY_POINT_ADDRESS=${loyaltyPoint.target}`);
+  console.log(`MOCK_VESTING_ADDRESS=${mockVestingToken.target}`);
   console.log(`
 REACT_APP_INVESTOR_VESTING_ADDRESS=${investorVestingToken.target}
 REACT_APP_FOUNDER_VESTING_ADDRESS=${founderVestingToken.target}
 REACT_APP_EMPLOYEE_VESTING_ADDRESS=${employeeVestingToken.target}
 REACT_APP_LOYALTY_POINT_ADDRESS=${loyaltyPoint.target}
+REACT_APP_MOCK_VESTING_ADDRESS=${mockVestingToken.target}
 `);
 
 }
