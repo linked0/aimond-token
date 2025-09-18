@@ -21,6 +21,7 @@
     "deploy:localnet": "hardhat run scripts/deploy.ts --network localnet",
 
     "deploy:all:testnet": "hardhat run scripts/deploy-all.ts --network bscTestnet",
+    "deploy:all-mock:testnet": "hardhat run scripts/deploy-all-mock.ts --network bscTestnet",
     "deploy:testnet": "hardhat run scripts/deploy.ts --network bscTestnet",
     "deploy:aimond:testnet": "hardhat run scripts/deploy-aimond-token.ts --network bscTestnet",
     "deploy:employee:testnet": "hardhat run scripts/deploy-employee-vesting-token.ts --network bscTestnet",
