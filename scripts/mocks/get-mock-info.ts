@@ -10,9 +10,24 @@ async function main() {
     if (!mockVestingAddress) {
         throw new Error("MOCK_VESTING_ADDRESS not found in .env file.");
     }
+    console.log("mockVestingAddress: ", mockVestingAddress)
+
+    const aimondTokenAddress = process.env.AIMOND_ADDRESS;
+    if (!aimondTokenAddress) {
+        throw new Error("AIMOND_ADDRESS not found in .env file.");
+    }
+    console.log("aimondTokenAddress: ", aimondTokenAddress)
+
+    const mockVestingSafeWallet = process.env.MOCK_VESTING_SAFE_WALLET;
+    if (!mockVestingSafeWallet) {
+        throw new Error("MOCK_VESTING_SAFE_WALLET not found in .env file.");
+    }
 
     const MockVestingToken = await ethers.getContractFactory("MockVestingToken");
     const mockVestingToken = MockVestingToken.attach(mockVestingAddress);
+
+    const AimondToken = await ethers.getContractFactory("AimondToken");
+    const aimondToken = AimondToken.attach(aimondTokenAddress);
 
     console.log(`\n--- MockVestingToken Info ---`);
     console.log(`Contract Address: ${mockVestingAddress}`);
@@ -28,13 +43,22 @@ async function main() {
     console.log(`Decimals: ${decimals}`);
     console.log(`Total Supply: ${ethers.formatUnits(totalSupply, decimals)}`);
 
+    const aimondBalance = await aimondToken.balanceOf(mockVestingAddress);
+    const aimondDecimals = await aimondToken.decimals();
+    console.log(`Aimond Token Balance: ${ethers.formatUnits(aimondBalance, aimondDecimals)}`);
+
+    const allowance = await aimondToken.allowance(deployer.address, mockVestingSafeWallet);
+    console.log(`Allowance for MOCK_VESTING_SAFE_WALLET: ${ethers.formatUnits(allowance, aimondDecimals)}`);
+
     const cliffDuration = await mockVestingToken.cliffDurationInSeconds();
     const vestingDuration = await mockVestingToken.vestingDurationInSeconds();
     const installmentCount = await mockVestingToken.installmentCount();
+    const beneficiariesCount = await mockVestingToken.beneficiariesCount();
     console.log(`\n--- Vesting Parameters ---`);
     console.log(`Cliff Duration: ${cliffDuration} seconds`);
     console.log(`Vesting Duration: ${vestingDuration} seconds`);
     console.log(`Installment Count: ${installmentCount}`);
+    console.log(`Beneficiaries Count: ${beneficiariesCount}`);
 
     console.log(`--------------------------`);
 }

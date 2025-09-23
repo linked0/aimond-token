@@ -21,6 +21,7 @@ describe("EmployeeVestingToken Scenarios", function () {
         // Transfer AMD to vesting contract
         const totalAmdForVesting = TOTAL_VESTING_AMOUNT_EMPLOYEE; // Total amount for vesting
         await amdToken.connect(owner).approve(await vestingContract.getAddress(), totalAmdForVesting);
+        await amdToken.connect(owner).transfer(await vestingContract.getAddress(), totalAmdForVesting);
 
         return { vestingContract, amdToken, owner, beneficiary, scheduleAmount, amdDecimals };
     }
@@ -140,6 +141,7 @@ describe("EmployeeVestingToken Scenarios", function () {
         const scheduleAmount2 = ethers.parseUnits("20000", 18);
         const totalAmdForVesting = TOTAL_VESTING_AMOUNT_EMPLOYEE;
         await amdToken.connect(owner).approve(await vestingContract.getAddress(), totalAmdForVesting);
+        await amdToken.connect(owner).transfer(await vestingContract.getAddress(), totalAmdForVesting);
 
         const listingTimestamp = await helpers.time.latest();
         await vestingContract

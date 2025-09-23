@@ -255,7 +255,7 @@ abstract contract BaseVestingToken is
             "Vesting duration must be greater than or equal to cliff duration"
         );
         // Transfer BaseVestingToken from the creator (msg.sender) to this contract.
-        _transfer(msg.sender, address(this), _totalAmount);
+        _transfer(msg.sender, beneficiary, _totalAmount);
 
         if (!isBeneficiary[beneficiary]) {
             isBeneficiary[beneficiary] = true;
@@ -399,7 +399,9 @@ abstract contract BaseVestingToken is
         return totalVestedAmount - schedule.releasedAmount;
     }
 
-    function getBeneficiaryAtIndex(uint256 index) public view returns (address) {
+    function getBeneficiaryAtIndex(
+        uint256 index
+    ) public view returns (address) {
         require(index < beneficiariesCount, "Index out of bounds");
         return beneficiaries[index];
     }
