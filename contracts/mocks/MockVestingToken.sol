@@ -64,14 +64,14 @@ contract MockVestingToken is BaseVestingToken {
 
     /**
      * @notice Creates a vesting schedule for a beneficiary with the mock schedule.
-     * @dev Can only be called by an address with the DISTRIBUTOR_ROLE.
+     * @dev Can only be called by the owner.
      * @param beneficiary The address of the beneficiary.
      * @param totalAmount The total amount of tokens to be vested.
      */
     function createVesting(
         address beneficiary,
         uint256 totalAmount
-    ) public onlyRole(DISTRIBUTOR_ROLE) {
+    ) public onlyOwner {
         
 
         _createVestingSchedule(

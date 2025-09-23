@@ -8,19 +8,17 @@ async function main() {
 
   console.log("Deploying AimondToken with the account:", deployer.address);
 
-  const initialOwner = process.env.INITIAL_OWNER;
-  if (!initialOwner) {
-    throw new Error("INITIAL_OWNER is not set in .env file");
-  }
-  if (!isAddress(initialOwner)) {
-    throw new Error(`INITIAL_OWNER is invalid: ${initialOwner}`);
-  }
+  const initialOwner = process.env.INITIAL_OWNER || deployer.address;
   if (initialOwner === ZeroAddress) {
     throw new Error("INITIAL_OWNER cannot be the zero address");
   }
   if (initialOwner === "0x0000000000000000000000000000000000000000") {
     throw new Error("INITIAL_OWNER cannot be the zero address");
   }
+  if (!isAddress(initialOwner)) {
+    throw new Error(`Invalid address for INITIAL_OWNER: ${initialOwner}`);
+  }
+
 
   const aimondToken = await ethers.deployContract("AimondToken", [initialOwner]);
   await aimondToken.waitForDeployment();

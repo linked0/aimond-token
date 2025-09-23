@@ -13,6 +13,7 @@ describe("MockVestingToken Scenarios", function () {
         const scheduleAmount = ethers.parseUnits("1000", 18);
         const totalAmdForVesting = ethers.parseUnits("10000", 18);
         await amdToken.connect(owner).approve(await vestingContract.getAddress(), totalAmdForVesting);
+        await amdToken.connect(owner).transfer(await vestingContract.getAddress(), totalAmdForVesting);
 
         return { vestingContract, amdToken, owner, beneficiary, scheduleAmount };
     }

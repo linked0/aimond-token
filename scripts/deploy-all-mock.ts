@@ -73,9 +73,9 @@ async function main() {
     initialOwner,
     initialDistributorManager,
     aimondToken.target,
-    ONE_DAY_IN_SECONDS, // _cliffDurationInSeconds
-    THIRTY_DAYS_IN_SECONDS, // _vestingDurationInSeconds
-    30 // _installmentCount
+    process.env.MOCK_CLIFF_DURATION, // _cliffDurationInSeconds
+    process.env.MOCK_VESTING_DURATION, // _vestingDurationInSeconds
+    process.env.MOCK_INSTALLMENT_COUNT // _installmentCount
   ]);
   await mockVestingToken.waitForDeployment();
   console.log("MockVestingToken deployed to:", mockVestingToken.target);

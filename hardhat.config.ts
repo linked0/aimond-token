@@ -52,7 +52,7 @@ const config: HardhatUserConfig = {
       ],
     },
     bsc: {
-      url: "https://bsc-dataseed1.binance.org/",
+      url: process.env.BSC_URL,
       chainId: 56,
       accounts: [
         process.env.ADMIN_KEY || "",
@@ -60,7 +60,7 @@ const config: HardhatUserConfig = {
       ],
     },
     bscTestnet: {
-      url: "https://data-seed-prebsc-1-s1.binance.org:8545",
+      url: process.env.BSC_TESTNET_URL,
       chainId: 97,
       accounts: [
         process.env.ADMIN_KEY || "",

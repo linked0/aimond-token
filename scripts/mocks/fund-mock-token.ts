@@ -1,6 +1,7 @@
 import { ethers } from "hardhat";
 import { parseUnits } from "ethers";
-import "dotenv/config";
+import * as dotenv from "dotenv";
+dotenv.config({ path: process.env.ENV_FILE || ".env" });
 
 async function main() {
   const [deployer] = await ethers.getSigners();

@@ -22,8 +22,11 @@
 
     "deploy:all:testnet": "hardhat run scripts/deploy-all.ts --network bscTestnet",
     "deploy:all-mock:testnet": "hardhat run scripts/deploy-all-mock.ts --network bscTestnet",
+    "deploy:all:bsc": "hardhat run scripts/deploy-all.ts --network bsc",
+    "deploy:all-mock:bsc": "hardhat run scripts/deploy-all-mock.ts --network bsc",
     "deploy:testnet": "hardhat run scripts/deploy.ts --network bscTestnet",
     "deploy:aimond:testnet": "hardhat run scripts/deploy-aimond-token.ts --network bscTestnet",
+    "deploy:aimond:bsc": "hardhat run scripts/deploy-aimond-token.ts --network bsc",
     "deploy:employee:testnet": "hardhat run scripts/deploy-employee-vesting-token.ts --network bscTestnet",
     "deploy:founder:testnet": "hardhat run scripts/deploy-founder-vesting-token.ts --network bscTestnet",
     "deploy:investor:testnet": "hardhat run scripts/deploy-investor-vesting-token.ts --network bscTestnet",
@@ -32,6 +35,13 @@
 
     "fund:loyalty:testnet": "hardhat run scripts/fund-loyalty-point.ts --network bscTestnet",
     "fund:mock:testnet": "hardhat run scripts/mocks/fund-mock-token.ts --network bscTestnet",
+    "fund:all:testnet": "yarn fund:loyalty:testnet && yarn fund:mock:testnet",
+
+    "fund:loyalty:bsc": "hardhat run scripts/fund-loyalty-point.ts --network bsc",
+    "fund:mock:bsc": "hardhat run scripts/mocks/fund-mock-token.ts --network bsc",
+    "fund:all:bsc": "yarn fund:loyalty:bsc && yarn fund:mock:bsc",
+    "fund:mock:safe:testnet": "hardhat run scripts/mocks/transfer-mock-token-to-safe.ts --network bscTestnet",
+    "fund:mock:safe:bsc": "hardhat run scripts/mocks/transfer-mock-token-to-safe.ts --network bsc",
 
     "info:loyalty:balances": "hardhat run scripts/get-loyalty-balances.ts --network bscTestnet",
     "info:loyalty:admin": "hardhat run scripts/get-loyalty-admin.ts --network bscTestnet",
@@ -39,11 +49,25 @@
     "info:mock:testnet": "hardhat run scripts/mocks/get-mock-info.ts --network bscTestnet",
     "info:mock:schedule:testnet": "hardhat run scripts/mocks/get-mock-schedule.ts --network bscTestnet",
 
+    "info:loyalty:balances:bsc": "hardhat run scripts/get-loyalty-balances.ts --network bsc",
+    "info:loyalty:admin:bsc": "hardhat run scripts/get-loyalty-admin.ts --network bsc",
+    "info:loyalty:token:bsc": "hardhat run scripts/get-loyalty-token.ts --network bsc",
+    "info:mock:bsc": "hardhat run scripts/mocks/get-mock-info.ts --network bsc",
+    "info:mock:schedule:bsc": "hardhat run scripts/mocks/get-mock-schedule.ts --network bsc",
+    "info:all:bsc": "hardhat run scripts/get-all-info.ts --network bsc",
+    "info:all:testnet": "ENV_FILE=.env.bscTestnet hardhat run scripts/get-all-info.ts --network bscTestnet",
+
     "create:investor:testnet": "hardhat run scripts/create-investor-vesting.ts --network bscTestnet",
     "create:keystore:loyalty": "hardhat run scripts/create-keystore.ts",
     "set:mock:testnet": "hardhat run scripts/mocks/set-mock-parameters.ts --network bscTestnet",
+    "set:mock:bsc": "hardhat run scripts/mocks/set-mock-parameters.ts --network bsc",
     "change:mock:owner:testnet": "hardhat run scripts/mocks/change-mock-owner.ts --network bscTestnet",
-    "generate:abis": "ts-node scripts/generate-abis.ts && cp contracts.ts ../frontend/src/constants/"
+    "change:mock:owner:bsc": "hardhat run scripts/mocks/change-mock-owner.ts --network bsc",
+    "setup:mock:testnet": "yarn set:mock:testnet && yarn change:mock:owner:testnet",
+    "setup:mock:bsc": "yarn set:mock:bsc && yarn change:mock:owner:bsc",
+    "generate:abis": "ts-node scripts/generate-abis.ts && cp contracts.ts ~/work/aimond-token-toolkit/frontend/src/constants/",
+    "setup": "hardhat run scripts/setup-project.ts --network bsc",
+    "setup:testnet": "ENV_FILE=.env.bscTestnet hardhat run scripts/setup-project.ts --network bscTestnet"
   },
   "keywords": [],
   "author": "",
