@@ -19,6 +19,7 @@ function getAccounts() {
   }
   accounts[0].privateKey = process.env.ADMIN_KEY || "";
   accounts[1].privateKey = process.env.USER_KEY || "";
+  accounts[2].privateKey = process.env.LOYALTY_POINT_ADMIN_KEY || "";
 
   return accounts;
 }
@@ -49,6 +50,7 @@ const config: HardhatUserConfig = {
       accounts: [
         process.env.ADMIN_KEY || "",
         process.env.USER_KEY || "",
+        process.env.LOYALTY_POINT_ADMIN_KEY || "",
       ],
     },
     bsc: {
@@ -57,6 +59,7 @@ const config: HardhatUserConfig = {
       accounts: [
         process.env.ADMIN_KEY || "",
         process.env.USER_KEY || "",
+        process.env.LOYALTY_POINT_ADMIN_KEY || "",
       ],
     },
     bscTestnet: {
@@ -65,6 +68,7 @@ const config: HardhatUserConfig = {
       accounts: [
         process.env.ADMIN_KEY || "",
         process.env.USER_KEY || "",
+        process.env.LOYALTY_POINT_ADMIN_KEY || "",
       ],
     }
   },

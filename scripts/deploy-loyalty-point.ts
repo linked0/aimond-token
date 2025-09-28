@@ -3,9 +3,9 @@ import { isAddress, ZeroHash } from "ethers";
 import "dotenv/config";
 
 async function main() {
-  const [deployer] = await ethers.getSigners();
+  const [ , , lpDeployer] = await ethers.getSigners();
 
-  console.log("Deploying LoyaltyPoint with the account:", deployer.address);
+  console.log("Deploying LoyaltyPoint with the account:", lpDeployer.address);
 
   const aimondAddress = process.env.AIMOND_ADDRESS;
   if (!aimondAddress) {
@@ -18,7 +18,7 @@ async function main() {
   const loyaltyPoint = await ethers.deployContract("LoyaltyPoint", [
     aimondAddress,
     ZeroHash,
-  ]);
+  ], { signer: lpDeployer });
   await loyaltyPoint.waitForDeployment();
 
   console.log("LoyaltyPoint deployed to:", loyaltyPoint.target);

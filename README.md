@@ -21,6 +21,7 @@ An end-to-end solution for the Aimond ecosystem token (AMD), including:
   - [Installation](#installation)
   - [Testing](#testing)
   - [Deployment](#deployment)
+  - [Create key store file](#create-key-store-file)
   - [Gnosis Safe Integration](#gnosis-safe-integration)
   - [References](#references)
 
@@ -125,6 +126,11 @@ yarn deploy:aim:bscTestnet
 ```
 
 Other deployment and transfer scripts for Jaymond token are also available in `package.json`.
+
+## Create key store file
+```
+ts-node scripts/create-keystore.ts <private-key> <password>
+```
 
 ## Gnosis Safe Integration
 
