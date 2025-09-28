@@ -3,14 +3,14 @@ import * as fs from "fs";
 import "dotenv/config";
 
 async function main() {
-  const privateKey = process.env.LOYALTY_POINT_ADMIN_KEY;
+  const privateKey = process.argv[2];
   if (!privateKey) {
-    throw new Error("LOYALTY_POINT_ADMIN_KEY not found in .env file");
+    throw new Error("Required arguments missing. Please check documentation for usage.");
   }
 
-  const password = process.env.LOYALTY_POINT_ADMIN_PASSWORD;
+  const password = process.argv[3];
   if (!password) {
-    throw new Error("LOYALTY_POINT_ADMIN_PASSWORD not found in .env file");
+    throw new Error("Required arguments missing. Please check documentation for usage.");
   }
 
   const wallet = new ethers.Wallet(privateKey);

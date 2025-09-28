@@ -19,7 +19,6 @@
     "deploy:investor:localnet": "hardhat run scripts/deploy-investor-vesting-token.ts --network localnet",
     "deploy:all:localnet": "hardhat run scripts/deploy-all.ts --network localnet",
     "deploy:localnet": "hardhat run scripts/deploy.ts --network localnet",
-
     "deploy:all:testnet": "hardhat run scripts/deploy-all.ts --network bscTestnet",
     "deploy:all-mock:testnet": "hardhat run scripts/deploy-all-mock.ts --network bscTestnet",
     "deploy:all:bsc": "hardhat run scripts/deploy-all.ts --network bsc",
@@ -31,24 +30,21 @@
     "deploy:founder:testnet": "hardhat run scripts/deploy-founder-vesting-token.ts --network bscTestnet",
     "deploy:investor:testnet": "hardhat run scripts/deploy-investor-vesting-token.ts --network bscTestnet",
     "deploy:mock:testnet": "hardhat run scripts/mocks/deploy-mock-vesting-token.ts --network bscTestnet",
+    "deploy:loyalty:bsc": "hardhat run scripts/deploy-loyalty-point.ts --network bsc",
     "deploy:loyalty:testnet": "hardhat run scripts/deploy-loyalty-point.ts --network bscTestnet",
-
     "fund:loyalty:testnet": "hardhat run scripts/fund-loyalty-point.ts --network bscTestnet",
     "fund:mock:testnet": "hardhat run scripts/mocks/fund-mock-token.ts --network bscTestnet",
     "fund:all:testnet": "yarn fund:loyalty:testnet && yarn fund:mock:testnet",
-
     "fund:loyalty:bsc": "hardhat run scripts/fund-loyalty-point.ts --network bsc",
     "fund:mock:bsc": "hardhat run scripts/mocks/fund-mock-token.ts --network bsc",
     "fund:all:bsc": "yarn fund:loyalty:bsc && yarn fund:mock:bsc",
     "fund:mock:safe:testnet": "hardhat run scripts/mocks/transfer-mock-token-to-safe.ts --network bscTestnet",
     "fund:mock:safe:bsc": "hardhat run scripts/mocks/transfer-mock-token-to-safe.ts --network bsc",
-
     "info:loyalty:balances": "hardhat run scripts/get-loyalty-balances.ts --network bscTestnet",
     "info:loyalty:admin": "hardhat run scripts/get-loyalty-admin.ts --network bscTestnet",
     "info:loyalty:token": "hardhat run scripts/get-loyalty-token.ts --network bscTestnet",
     "info:mock:testnet": "hardhat run scripts/mocks/get-mock-info.ts --network bscTestnet",
     "info:mock:schedule:testnet": "hardhat run scripts/mocks/get-mock-schedule.ts --network bscTestnet",
-
     "info:loyalty:balances:bsc": "hardhat run scripts/get-loyalty-balances.ts --network bsc",
     "info:loyalty:admin:bsc": "hardhat run scripts/get-loyalty-admin.ts --network bsc",
     "info:loyalty:token:bsc": "hardhat run scripts/get-loyalty-token.ts --network bsc",
@@ -56,7 +52,6 @@
     "info:mock:schedule:bsc": "hardhat run scripts/mocks/get-mock-schedule.ts --network bsc",
     "info:all:bsc": "hardhat run scripts/get-all-info.ts --network bsc",
     "info:all:testnet": "ENV_FILE=.env.bscTestnet hardhat run scripts/get-all-info.ts --network bscTestnet",
-
     "create:investor:testnet": "hardhat run scripts/create-investor-vesting.ts --network bscTestnet",
     "create:keystore:loyalty": "hardhat run scripts/create-keystore.ts",
     "set:mock:testnet": "hardhat run scripts/mocks/set-mock-parameters.ts --network bscTestnet",
@@ -85,7 +80,7 @@
     "@typechain/hardhat": "^9.0.0",
     "@types/chai": "^4.2.0",
     "@types/mocha": "^10.0.10",
-    "@types/node": "^24.0.10",
+    "@types/node": "^24.5.2",
     "chai": "^4.3.7",
     "dotenv": "^17.0.1",
     "ethers": "^6.13.1",
@@ -94,7 +89,7 @@
     "solidity-coverage": "^0.8.1",
     "ts-node": "^10.9.2",
     "typechain": "^8.3.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.2"
   },
   "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e",
   "dependencies": {
