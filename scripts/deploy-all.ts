@@ -3,7 +3,16 @@ import { ethers } from "hardhat";
 import { isAddress, ZeroAddress } from "ethers";
 import "dotenv/config";
 
-async function main() {
+export interface DeploymentResult {
+  aimondToken: any;
+  loyaltyPoint: any;
+  employeeVestingToken: any;
+  founderVestingToken: any;
+  investorVestingToken: any;
+  mockVestingToken?: any;
+}
+
+export async function deployContracts(): Promise<DeploymentResult> {
   const [deployer] = await ethers.getSigners();
 
   console.log("Deploying contracts with the account:", deployer.address);
@@ -67,18 +76,55 @@ async function main() {
   await investorVestingToken.waitForDeployment();
   console.log("InvestorVestingToken deployed to:", investorVestingToken.target);
 
-  console.log(`AIMOND_ADDRESS=${aimondToken.target}`);
-  console.log(`INVESTOR_VESTING_ADDRESS=${investorVestingToken.target}`);
-  console.log(`FOUNDER_VESTING_ADDRESS=${founderVestingToken.target}`);
-  console.log(`EMPLOYEE_VESTING_ADDRESS=${employeeVestingToken.target}`);
-  console.log(`LOYALTY_POINT_ADDRESS=${loyaltyPoint.target}`);
+  // Deploy MockVestingToken unconditionally
+  const ONE_DAY_IN_SECONDS = 24 * 60 * 60;
+  const THIRTY_DAYS_IN_SECONDS = 30 * ONE_DAY_IN_SECONDS;
+  const mockVestingToken = await ethers.deployContract("MockVestingToken", [
+    initialOwner,
+    initialDistributorManager,
+    aimondToken.target,
+    process.env.MOCK_CLIFF_DURATION || "86400", // _cliffDurationInSeconds (default: 1 day)
+    process.env.MOCK_VESTING_DURATION || "2592000", // _vestingDurationInSeconds (default: 30 days)
+    process.env.MOCK_INSTALLMENT_COUNT || "12" // _installmentCount (default: 12)
+  ]);
+  await mockVestingToken.waitForDeployment();
+  console.log("MockVestingToken deployed to:", mockVestingToken.target);
+
+  const result: DeploymentResult = {
+    aimondToken,
+    loyaltyPoint,
+    employeeVestingToken,
+    founderVestingToken,
+    investorVestingToken,
+    mockVestingToken
+  };
+
+  return result;
+}
+
+export function logDeploymentResults(result: DeploymentResult, includeMock: boolean = false) {
+  console.log(`AIMOND_ADDRESS=${result.aimondToken.target}`);
+  console.log(`INVESTOR_VESTING_ADDRESS=${result.investorVestingToken.target}`);
+  console.log(`FOUNDER_VESTING_ADDRESS=${result.founderVestingToken.target}`);
+  console.log(`EMPLOYEE_VESTING_ADDRESS=${result.employeeVestingToken.target}`);
+  console.log(`MOCK_VESTING_ADDRESS=${result.mockVestingToken.target}`);
+  console.log(`LOYALTY_POINT_ADDRESS=${result.loyaltyPoint.target}`);
+  
   console.log(`
-REACT_APP_INVESTOR_VESTING_ADDRESS=${investorVestingToken.target}
-REACT_APP_FOUNDER_VESTING_ADDRESS=${founderVestingToken.target}
-REACT_APP_EMPLOYEE_VESTING_ADDRESS=${employeeVestingToken.target}
-REACT_APP_LOYALTY_POINT_ADDRESS=${loyaltyPoint.target}
+REACT_APP_INVESTOR_VESTING_ADDRESS=${result.investorVestingToken.target}
+REACT_APP_FOUNDER_VESTING_ADDRESS=${result.founderVestingToken.target}
+REACT_APP_EMPLOYEE_VESTING_ADDRESS=${result.employeeVestingToken.target}
+REACT_APP_MOCK_VESTING_ADDRESS=${result.mockVestingToken.target}
+REACT_APP_LOYALTY_POINT_ADDRESS=${result.loyaltyPoint.target}
 `);
 
+  // Backend logs
+  console.log(`LOYALTY_POINT_ADDRESS=${result.loyaltyPoint.target}`);
+}
+
+async function main() {
+  const result = await deployContracts();
+  logDeploymentResults(result, true);
 }
 
 main().catch((error) => {
