@@ -132,6 +132,57 @@ Other deployment and transfer scripts for Jaymond token are also available in `p
 ts-node scripts/create-keystore.ts <private-key> <password>
 ```
 
+## Script Execution Order
+
+To properly set up and manage the vesting system, follow this order when executing scripts:
+
+### 1. Initial Setup
+```bash
+# Deploy all contracts
+npx hardhat run scripts/deploy-all.ts --network <network>
+
+# Set global start time for all vesting contracts
+npx hardhat run scripts/set-global-start-time.ts --network <network>
+
+# Set the owner for vesting contracts (if needed)
+npx hardhat run scripts/set-owner.ts --network <network>
+```
+
+### 2. Token Distribution
+```bash
+# Fund all vesting contracts with Aimond tokens
+npx hardhat run scripts/fund-all.ts --network <network>
+
+# Transfer BaseVestingToken tokens from owner to safe wallet
+npx hardhat run scripts/transfer-to-safe.ts --network <network>
+```
+
+### 3. Verification and Monitoring
+```bash
+# Check all contract information, balances, and vesting schedules
+npx hardhat run scripts/get-all-info.ts --network <network>
+```
+
+### 4. Vesting Operations
+```bash
+# Create vesting schedules for beneficiaries
+npx hardhat run scripts/set-mock-owner.ts --network <network>  # If using mock owner
+npx hardhat run scripts/transfer-tokens.ts --network <network>  # Transfer tokens to beneficiaries
+```
+
+### 5. Troubleshooting
+If you encounter "Simulation failed" errors when calling `createVesting`:
+
+1. **Check balances**: Run `get-all-info.ts` to see BaseVestingToken balances
+2. **Transfer tokens**: Use `transfer-to-safe.ts` to move tokens to the safe wallet
+3. **Verify ownership**: Ensure the caller has sufficient BaseVestingToken tokens
+
+### Key Points
+- **BaseVestingToken tokens** are needed for `createVesting` operations
+- **Aimond tokens** are needed for actual token releases to beneficiaries
+- **Safe wallet** should hold BaseVestingToken tokens for vesting operations
+- **Owner** should have BaseVestingToken tokens initially (then transfer to safe wallet)
+
 ## Gnosis Safe Integration
 
 For instructions on administering vesting contracts via Gnosis Safe multisig, see [Gnosis Safe Guide](docs/GNOSIS_SAFE_GUIDE.md).

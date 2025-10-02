@@ -244,16 +244,19 @@ abstract contract BaseVestingToken is
         uint256 installmentCount,
         uint256 _totalAmount
     ) internal {
-        require(
-            vestingSchedules[beneficiary].totalAmount == 0,
-            "Vesting schedule already exists"
-        );
         require(_totalAmount > 0, "Total amount must be greater than 0");
         require(installmentCount > 0, "Installment count must be > 0");
         require(
             vestingDurationInSeconds >= cliffDurationInSeconds,
             "Vesting duration must be greater than or equal to cliff duration"
         );
+
+        VestingSchedule storage existingSchedule = vestingSchedules[beneficiary];
+        // Detect if a vesting schedule exists for the beneficiary.
+        // If totalAmount == 0, no schedule exists yet. This is a critical logic point for additive vesting:
+        // it determines whether to create a new schedule or add to an existing one.
+        bool isNewSchedule = existingSchedule.totalAmount == 0;
+
         // Transfer BaseVestingToken from the creator (msg.sender) to this contract.
         _transfer(msg.sender, beneficiary, _totalAmount);
 
@@ -263,25 +266,28 @@ abstract contract BaseVestingToken is
             beneficiariesCount++;
         }
 
-        uint256 cliffDuration = cliffDurationInSeconds;
-        uint256 totalVestingDuration = vestingDurationInSeconds;
-        uint256 releaseDuration = totalVestingDuration - cliffDuration;
+        if (isNewSchedule) {
+            // Create new vesting schedule
+            vestingSchedules[beneficiary] = VestingSchedule({
+                totalAmount: _totalAmount,
+                totalVestingDuration: vestingDurationInSeconds,
+                cliffDuration: cliffDurationInSeconds,
+                releaseDuration: vestingDurationInSeconds - cliffDurationInSeconds,
+                installmentCount: installmentCount,
+                releasedAmount: 0
+            });
+        } else {
+            // Add to existing schedule - only add to totalAmount, keep other parameters unchanged
+            existingSchedule.totalAmount += _totalAmount;
+        }
 
-        vestingSchedules[beneficiary] = VestingSchedule({
-            totalAmount: _totalAmount,
-            totalVestingDuration: totalVestingDuration,
-            cliffDuration: cliffDuration,
-            releaseDuration: releaseDuration,
-            installmentCount: installmentCount,
-            releasedAmount: 0
-        });
         emit VestingScheduleCreated(
             beneficiary,
-            totalVestingDuration,
-            cliffDuration,
-            releaseDuration,
+            vestingDurationInSeconds,
+            cliffDurationInSeconds,
+            vestingDurationInSeconds - cliffDurationInSeconds,
             installmentCount,
-            _totalAmount
+            vestingSchedules[beneficiary].totalAmount
         );
     }
 

@@ -51,6 +51,44 @@ async function fundMockToken() {
     console.log(`Successfully transferred ${mockVestingFund} Aimond tokens to ${mockVestingAddress}`);
 }
 
+async function transferVestingTokensToSafe() {
+    console.log("\n--- Transferring Vesting Tokens to Safe Wallet ---");
+    const [deployer] = await ethers.getSigners();
+    console.log("Transferring vesting tokens to safe wallet with the account:", deployer.address);
+
+    // Transfer MockVestingToken
+    const mockVestingAddress = process.env.MOCK_VESTING_ADDRESS;
+    if (mockVestingAddress) {
+        console.log("\n--- Transferring Mock Vesting Token to Safe Wallet ---");
+        const mockVestingSafeWallet = process.env.MOCK_VESTING_SAFE_WALLET;
+        if (!mockVestingSafeWallet) throw new Error("MOCK_VESTING_SAFE_WALLET not found in .env file.");
+
+        const MockVestingToken = await ethers.getContractFactory("MockVestingToken");
+        const mockVestingToken = MockVestingToken.attach(mockVestingAddress);
+
+        const balance = await mockVestingToken.balanceOf(deployer.address);
+        const decimals = await mockVestingToken.decimals();
+        console.log(`Deployer MockVestingToken balance: ${ethers.formatUnits(balance, decimals)}`);
+
+        if (balance > 0n) {
+            console.log(`Transferring ${ethers.formatUnits(balance, decimals)} MockVestingToken to ${mockVestingSafeWallet}...`);
+            const tx = await mockVestingToken.transfer(mockVestingSafeWallet, balance);
+            await tx.wait();
+            console.log("Transfer successful! Transaction hash:", tx.hash);
+            const safeBalance = await mockVestingToken.balanceOf(mockVestingSafeWallet);
+            console.log(`MOCK_VESTING_SAFE_WALLET MockVestingToken balance: ${ethers.formatUnits(safeBalance, decimals)}`);
+        } else {
+            console.log("No MockVestingToken to transfer.");
+        }
+    } else {
+        console.log("MOCK_VESTING_ADDRESS not found in .env file. Skipping MockVestingToken transfer.");
+    }
+
+    // TODO: Implement for other vesting contracts (Investor/Founder/Employee)
+    console.log("\n--- Investor/Founder/Employee Vesting Tokens ---");
+    console.log("SHOULD BE IMPLEMENTED LATER");
+}
+
 async function changeMockOwner() {
     console.log("\n--- Changing Mock Vesting Owner and Approving ---");
     const [deployer] = await ethers.getSigners();
@@ -59,7 +97,6 @@ async function changeMockOwner() {
     const mockVestingAddress = process.env.MOCK_VESTING_ADDRESS;
     if (!mockVestingAddress) throw new Error("MOCK_VESTING_ADDRESS not found in .env file.");
     console.log("Using MOCK_VESTING_ADDRESS:", mockVestingAddress);
-
 
     const newOwner = process.env.MOCK_VESTING_SAFE_WALLET;
     if (!newOwner) throw new Error("MOCK_VESTING_SAFE_WALLET not found in .env file.");
@@ -93,33 +130,40 @@ async function changeMockOwner() {
     }
 }
 
-async function transferMockTokenToSafe() {
-    console.log("\n--- Transferring Mock Vesting Token to Safe Wallet ---");
+async function setGlobalStartTime() {
+    console.log("\n--- Setting Global Start Time ---");
     const [deployer] = await ethers.getSigners();
-    console.log("Transferring MockVestingToken to safe wallet with the account:", deployer.address);
+    console.log("Setting global start time with the account:", deployer.address);
 
-    const mockVestingAddress = process.env.MOCK_VESTING_ADDRESS;
-    if (!mockVestingAddress) throw new Error("MOCK_VESTING_ADDRESS not found in .env file.");
+    const globalStartTime = process.env.GLOBAL_START_TIME;
+    if (!globalStartTime) throw new Error("GLOBAL_START_TIME not found in .env file");
 
-    const mockVestingSafeWallet = process.env.MOCK_VESTING_SAFE_WALLET;
-    if (!mockVestingSafeWallet) throw new Error("MOCK_VESTING_SAFE_WALLET not found in .env file.");
+    const startTime = parseInt(globalStartTime);
+    console.log(`Setting global start time to: ${startTime} (${new Date(startTime * 1000).toISOString()})`);
 
-    const MockVestingToken = await ethers.getContractFactory("MockVestingToken");
-    const mockVestingToken = MockVestingToken.attach(mockVestingAddress);
+    // Set global start time for all vesting contracts
+    const contracts = [
+        { name: "MockVestingToken", address: process.env.MOCK_VESTING_ADDRESS },
+        { name: "EmployeeVestingToken", address: process.env.EMPLOYEE_VESTING_ADDRESS },
+        { name: "FounderVestingToken", address: process.env.FOUNDER_VESTING_ADDRESS },
+        { name: "InvestorVestingToken", address: process.env.INVESTOR_VESTING_ADDRESS }
+    ];
 
-    const balance = await mockVestingToken.balanceOf(deployer.address);
-    const decimals = await mockVestingToken.decimals();
-    console.log(`Deployer MockVestingToken balance: ${ethers.formatUnits(balance, decimals)}`);
+    for (const contract of contracts) {
+        if (!contract.address) {
+            console.log(`Skipping ${contract.name} - address not found in .env`);
+            continue;
+        }
 
-    if (balance > 0n) {
-        console.log(`Transferring ${ethers.formatUnits(balance, decimals)} MockVestingToken to ${mockVestingSafeWallet}...`);
-        const tx = await mockVestingToken.transfer(mockVestingSafeWallet, balance);
-        await tx.wait();
-        console.log("Transfer successful! Transaction hash:", tx.hash);
-        const safeBalance = await mockVestingToken.balanceOf(mockVestingSafeWallet);
-        console.log(`MOCK_VESTING_SAFE_WALLET MockVestingToken balance: ${ethers.formatUnits(safeBalance, decimals)}`);
-    } else {
-        console.log("No MockVestingToken to transfer.");
+        try {
+            console.log(`Setting global start time for ${contract.name} at ${contract.address}...`);
+            const contractInstance = await ethers.getContractAt(contract.name, contract.address);
+            const tx = await contractInstance.setGlobalStartTime(startTime);
+            await tx.wait();
+            console.log(`✓ Successfully set global start time for ${contract.name}. Transaction hash: ${tx.hash}`);
+        } catch (error) {
+            console.error(`✗ Failed to set global start time for ${contract.name}:`, error.message);
+        }
     }
 }
 
@@ -186,8 +230,9 @@ async function main() {
 
     await fundLoyaltyPoint();
     await fundMockToken();
+    await setGlobalStartTime();
+    await transferVestingTokensToSafe();
     await changeMockOwner();
-    await transferMockTokenToSafe();
     generateAbis();
 
     console.log("\nAll setup scripts finished successfully!");
