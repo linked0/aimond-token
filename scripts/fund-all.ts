@@ -50,6 +50,8 @@ async function main() {
     }
   ];
 
+  console.log("MOCK_VESTING_FUND_AMOUNT:", process.env.MOCK_VESTING_FUND_AMOUNT);
+
   // Filter out contracts that don't have both address and fund amount
   const validContracts = contractsToFund.filter(contract => 
     contract.address && contract.fundAmount && contract.fundAmount !== "0"

@@ -155,3 +155,6 @@ ignition/deployments/chain-31337
 security/
 
 keystore-loyalty-point-admin.json
+
+# AI Agent
+.claude

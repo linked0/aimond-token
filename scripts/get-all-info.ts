@@ -1,6 +1,6 @@
 import { ethers, network } from "hardhat";
 import * as dotenv from "dotenv";
-import { formatUnits } from "ethers";
+import { formatUnits, parseUnits } from "ethers";
 
 const TYPICAL_VESTING_AMOUNT = "1000000"; // 1M tokens
 
@@ -61,7 +61,7 @@ async function getLoyaltyInfo() {
         // Log the merkle root
         const merkleRoot = await loyaltyPoint.merkleRoot();
         console.log(`Loyalty Point Merkle Root: ${merkleRoot}`);
-    } catch (error) {
+    } catch (error: any) {
         console.log("❌ Failed to interact with LoyaltyPoint contract:", error.message);
         console.log("💡 The contract may not be properly deployed or may have a different ABI");
     }
@@ -150,7 +150,7 @@ async function getMockInfo() {
             console.log(`Currently Releasable Amount: ${formatUnits(currentlyReleasable, tokenDecimals)} ${tokenName}`);
         }
         console.log(`------------------------------------------------`);
-    } catch (error) {
+    } catch (error: any) {
         console.log("❌ Failed to interact with MockVestingToken contract:", error.message);
         console.log("💡 The contract may not be properly deployed or may have a different ABI");
     }
@@ -214,13 +214,13 @@ async function getVestingContractsInfo() {
                 const balance = await aimondToken.balanceOf(contract.address);
                 const decimals = await aimondToken.decimals();
                 console.log(`Aimond Token Balance: ${formatUnits(balance, decimals)}`);
-            } catch (balanceError) {
+            } catch (balanceError: any) {
                 console.log(`❌ Failed to get Aimond token balance: ${balanceError.message}`);
             }
 
             // Get BaseVestingToken balance for the caller (owner)
             try {
-                const callerAddress = process.env.INITIAL_OWNER;
+                const callerAddress = process.env.MOCK_VESTING_SAFE_WALLET;
                 if (callerAddress) {
                     const vestingTokenBalance = await contractInstance.balanceOf(callerAddress);
                     const vestingDecimals = await contractInstance.decimals();
@@ -234,9 +234,10 @@ async function getVestingContractsInfo() {
                         console.log(`❌ Caller may not have enough balance for vesting operations`);
                         console.log(`   Need: ${formatUnits(typicalAmount, vestingDecimals)}`);
                         console.log(`   Have: ${formatUnits(vestingTokenBalance, vestingDecimals)}`);
+                        console.log(`   💡 Consider using MOCK_VESTING_SAFE_WALLET for vesting operations instead`);
                     }
                 }
-            } catch (balanceError) {
+            } catch (balanceError: any) {
                 console.log(`❌ Failed to get caller balance: ${balanceError.message}`);
             }
 
@@ -260,10 +261,10 @@ async function getVestingContractsInfo() {
                 } else {
                     console.log(`❌ MOCK_VESTING_SAFE_WALLET not found in .env file`);
                 }
-            } catch (balanceError) {
+            } catch (balanceError: any) {
                 console.log(`❌ Failed to get safe wallet balance: ${balanceError.message}`);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error(`✗ Failed to get info for ${contract.name}:`, error.message);
         }
     }
@@ -304,7 +305,7 @@ async function getVestingContractsInfo() {
                         if (balance > 0n) {
                             contractsWithBalance++;
                         }
-                    } catch (error) {
+                    } catch (error: any) {
                         // Skip contracts that can't be queried
                     }
                 }
@@ -322,7 +323,7 @@ async function getVestingContractsInfo() {
                 try {
                     const loyaltyBalance = await aimondToken.balanceOf(loyaltyPointAddress);
                     console.log(`LoyaltyPoint contract balance: ${formatUnits(loyaltyBalance, decimals)}`);
-                } catch (error) {
+                } catch (error: any) {
                     console.log(`❌ Failed to get LoyaltyPoint balance: ${error.message}`);
                 }
             }
@@ -350,7 +351,7 @@ async function getVestingContractsInfo() {
                             if (callerBalance > 0n) {
                                 contractsWithCallerBalance++;
                             }
-                        } catch (error) {
+                        } catch (error: any) {
                             console.log(`${contract.name}: ❌ Failed to get balance`);
                         }
                     }
@@ -367,6 +368,7 @@ async function getVestingContractsInfo() {
                 console.log(`   1. Transfer BaseVestingToken tokens to the caller`);
                 console.log(`   2. Mint tokens to the caller (if minting is enabled)`);
                 console.log(`   3. Use setup-vesting-caller.ts script to fix this`);
+                console.log(`   4. Use MOCK_VESTING_SAFE_WALLET for vesting operations instead`);
             } else {
                 console.log(`✅ Caller has BaseVestingToken tokens for vesting operations`);
             }
@@ -396,7 +398,7 @@ async function getVestingContractsInfo() {
                             if (safeWalletBalance > 0n) {
                                 contractsWithSafeWalletBalance++;
                             }
-                        } catch (error) {
+                        } catch (error: any) {
                             console.log(`${contract.name}: ❌ Failed to get balance`);
                         }
                     }
@@ -415,7 +417,7 @@ async function getVestingContractsInfo() {
         } else {
             console.log("❌ MOCK_VESTING_SAFE_WALLET not found in .env file");
         }
-    } catch (error) {
+    } catch (error: any) {
         console.log(`❌ Failed to generate balance summary: ${error.message}`);
     }
 }

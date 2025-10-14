@@ -32,6 +32,8 @@
     "deploy:mock:testnet": "hardhat run scripts/mocks/deploy-mock-vesting-token.ts --network bscTestnet",
     "deploy:loyalty:bsc": "hardhat run scripts/deploy-loyalty-point.ts --network bsc",
     "deploy:loyalty:testnet": "hardhat run scripts/deploy-loyalty-point.ts --network bscTestnet",
+    "fund:all:bsc": "hardhat run scripts/fund-all.ts --network bsc",
+    "fund:all:testnet": "ENV_FILE=.env.bscTestnet hardhat run scripts/fund-all.ts --network bscTestnet",
     "fund:loyalty:testnet": "hardhat run scripts/fund-loyalty-point.ts --network bscTestnet",
     "fund:mock:testnet": "hardhat run scripts/mocks/fund-mock-token.ts --network bscTestnet",
     "fund:loyalty:bsc": "hardhat run scripts/fund-loyalty-point.ts --network bsc",
@@ -61,8 +63,12 @@
     "generate:abis": "ts-node scripts/generate-abis.ts && cp contracts.ts ~/work/aimond-token-toolkit/frontend/src/constants/",
     "setup:bsc": "hardhat run scripts/setup-project.ts --network bsc",
     "setup:testnet": "ENV_FILE=.env.bscTestnet hardhat run scripts/setup-project.ts --network bscTestnet",
+    "set-owner:bsc": "hardhat run scripts/set-owner.ts --network bsc",
+    "set-owner:testnet": "ENV_FILE=.env.bscTestnet hardhat run scripts/set-owner.ts --network bscTestnet",
     "set:global-start-time:bsc": "hardhat run scripts/set-global-start-time.ts --network bsc",
-    "set:global-start-time:testnet": "ENV_FILE=.env.bscTestnet hardhat run scripts/set-global-start-time.ts --network bscTestnet"
+    "set:global-start-time:testnet": "ENV_FILE=.env.bscTestnet hardhat run scripts/set-global-start-time.ts --network bscTestnet",
+    "transfer:safe:bsc": "hardhat run scripts/transfer-to-safe.ts --network bsc",
+    "transfer:safe:testnet": "ENV_FILE=.env.bscTestnet hardhat run scripts/transfer-to-safe.ts --network bscTestnet"
   },
   "keywords": [],
   "author": "",

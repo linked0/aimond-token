@@ -39,6 +39,8 @@ export async function deployContracts(): Promise<DeploymentResult> {
     throw new Error("INITIAL_DISTRIBUTOR_MANAGER cannot be the zero address");
   }
 
+  console.log("--- Deploying Contracts ---");
+
   // Deploy AimondToken
   const aimondToken = await ethers.deployContract("AimondToken", [initialOwner]);
   await aimondToken.waitForDeployment();

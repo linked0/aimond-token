@@ -22,6 +22,13 @@ An end-to-end solution for the Aimond ecosystem token (AMD), including:
   - [Testing](#testing)
   - [Deployment](#deployment)
   - [Create key store file](#create-key-store-file)
+  - [Script Execution Order](#script-execution-order)
+    - [1. Initial Setup](#1-initial-setup)
+    - [2. Token Distribution](#2-token-distribution)
+    - [3. Verification and Monitoring](#3-verification-and-monitoring)
+    - [4. Vesting Operations (if necessary)](#4-vesting-operations-if-necessary)
+    - [5. Troubleshooting](#5-troubleshooting)
+    - [Key Points](#key-points)
   - [Gnosis Safe Integration](#gnosis-safe-integration)
   - [References](#references)
 
@@ -139,31 +146,44 @@ To properly set up and manage the vesting system, follow this order when executi
 ### 1. Initial Setup
 ```bash
 # Deploy all contracts
+yarn deploy:all:bsc
+# or
 npx hardhat run scripts/deploy-all.ts --network <network>
 
+
 # Set global start time for all vesting contracts
+yarn set:global-start-time:bsc
+# or
 npx hardhat run scripts/set-global-start-time.ts --network <network>
 
-# Set the owner for vesting contracts (if needed)
+# Set the owner for vesting contracts
+yarn set-owner:bsc
+# or
 npx hardhat run scripts/set-owner.ts --network <network>
 ```
 
 ### 2. Token Distribution
 ```bash
-# Fund all vesting contracts with Aimond tokens
+# Fund all vesting contracts and loyalty point contract with Aimond tokens
+yarn fund:all:bsc
+# or
 npx hardhat run scripts/fund-all.ts --network <network>
 
-# Transfer BaseVestingToken tokens from owner to safe wallet
+# Transfer BaseVestingToken tokens from initial owner to safe wallet
+yarn transfer:safe:bsc
+# or
 npx hardhat run scripts/transfer-to-safe.ts --network <network>
 ```
 
 ### 3. Verification and Monitoring
 ```bash
 # Check all contract information, balances, and vesting schedules
+yarn info:all:bsc
+# or
 npx hardhat run scripts/get-all-info.ts --network <network>
 ```
 
-### 4. Vesting Operations
+### 4. Vesting Operations (if necessary)
 ```bash
 # Create vesting schedules for beneficiaries
 npx hardhat run scripts/set-mock-owner.ts --network <network>  # If using mock owner
