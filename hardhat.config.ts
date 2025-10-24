@@ -61,6 +61,7 @@ const config: HardhatUserConfig = {
         process.env.USER_KEY || "",
         process.env.LOYALTY_POINT_ADMIN_KEY || "",
       ],
+      gasPrice: 3000000000, // 3 gwei - BSC recommended gas price
     },
     bscTestnet: {
       url: process.env.BSC_TESTNET_URL,
@@ -70,6 +71,7 @@ const config: HardhatUserConfig = {
         process.env.USER_KEY || "",
         process.env.LOYALTY_POINT_ADMIN_KEY || "",
       ],
+      gasPrice: 10000000000, // 10 gwei - BSC testnet recommended gas price
     }
   },
   etherscan: {
